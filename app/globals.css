@@ -16,7 +16,57 @@ body {
   margin: 0;
 }
 
-/* 1. ПРЕМИАЛЬНЫЙ ШУМ */
+/* 1. ЭКСТРЕМАЛЬНОЕ РАСТВОРЕНИЕ ГРАНИЦ ВИДЕО */
+.video-mask {
+  mask-image: linear-gradient(to right, 
+    transparent 0%, 
+    rgba(0,0,0,0.1) 15%,
+    black 50%, 
+    rgba(0,0,0,0.1) 85%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(to right, 
+    transparent 0%, 
+    rgba(0,0,0,0.1) 15%,
+    black 50%, 
+    rgba(0,0,0,0.1) 85%,
+    transparent 100%
+  );
+}
+
+/* 2. АНИМАЦИЯ СКАНЕРА ОТПЕЧАТКА */
+@keyframes fingerprint-scan {
+  0% { top: 0%; opacity: 0; }
+  50% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+.animate-f-scan {
+  animation: fingerprint-scan 3s ease-in-out infinite;
+}
+
+/* 3. НЕОНОВОЕ СВЕЧЕНИЕ */
+.blue-glow-filter {
+  filter: drop-shadow(0 0 15px rgba(37, 99, 235, 0.6));
+}
+
+/* 4. ПУЛЬСАЦИЯ И ВРАЩЕНИЕ */
+@keyframes scanner-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.05); opacity: 1; }
+}
+.animate-scanner-pulse {
+  animation: scanner-pulse 4s ease-in-out infinite;
+}
+
+@keyframes slow-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-slow-spin {
+  animation: slow-spin 10s linear infinite;
+}
+
+/* 5. ДОПОЛНИТЕЛЬНЫЕ ЭФФЕКТЫ */
 .noise-overlay::before {
   content: "";
   position: absolute;
@@ -27,29 +77,9 @@ body {
   pointer-events: none;
 }
 
-/* 2. МАСКА ВИДЕО: Мягкое растворение как на скриншоте */
-.video-mask {
-  mask-image: linear-gradient(to right, transparent 0%, black 45%, black 55%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 45%, black 55%, transparent 100%);
+.group\/link, .group\/link span {
+  -webkit-tap-highlight-color: transparent !important;
+  background-color: transparent !important;
+  user-select: none !important;
+  outline: none !important;
 }
-
-/* 3. АНИМАЦИИ */
-@keyframes scanner {
-  0% { transform: translateY(-100%); opacity: 0; }
-  10% { opacity: 1; }
-  90% { opacity: 1; }
-  100% { transform: translateY(800%); opacity: 0; }
-}
-.animate-scanner { animation: scanner 8s linear infinite; }
-
-@keyframes slow-zoom {
-  0% { transform: scale(1.0); }
-  100% { transform: scale(1.08); }
-}
-.animate-slow-zoom { animation: slow-zoom 30s infinite alternate ease-in-out; }
-
-@keyframes pulse-glow {
-  0%, 100% { opacity: 0.15; transform: translate(-50%, -50%) scale(1); }
-  50% { opacity: 0.25; transform: translate(-50%, -50%) scale(1.2); }
-}
-.animate-glow { animation: pulse-glow 6s ease-in-out infinite; }
