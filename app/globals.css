@@ -1,20 +1,69 @@
 @import "tailwindcss";
 
+/* 1. НАСТРОЙКИ ТЕМЫ */
 @theme {
-  /* Привязываем твои шрифты Oswald и Inter */
-  --font-oswald: var(--font-oswald);
-  --font-inter: var(--font-inter);
+  --font-sans: var(--font-inter);
 }
 
-/* Настройки для YourSystems */
+/* 2. ГЛОБАЛЬНЫЕ СТИЛИ */
 :root {
-  --background: #f9fafb;
-  --foreground: #111827;
+  --background: #ffffff;
+  --foreground: #0f172a;
+  --brand-blue: #2563eb;
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
   margin: 0;
+  padding: 0;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Плавность для интерактива */
+* {
+  transition-property: color, background-color, border-color, transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+
+/* 3. ЭФФЕКТ ДЛЯ ВИДЕО: МАКСИМАЛЬНОЕ РАЗМЫТИЕ ГРАНИЦ */
+
+/* 
+  Маска сведена практически в одну точку (50%). 
+  Видео плавно "вытекает" из прозрачности с 0% до 50% 
+  и так же плавно уходит обратно. 
+*/
+.video-mask {
+  mask-image: linear-gradient(to right, 
+    transparent 0%, 
+    rgba(0,0,0,1) 50%, 
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(to right, 
+    transparent 0%, 
+    rgba(0,0,0,1) 50%, 
+    transparent 100%
+  );
+}
+
+/* Анимация медленного приближения */
+@keyframes slow-zoom {
+  0% { transform: scale(1.0); }
+  100% { transform: scale(1.12); }
+}
+
+.animate-slow-zoom {
+  animation: slow-zoom 25s infinite alternate ease-in-out;
+}
+
+::selection {
+  background-color: var(--brand-blue);
+  color: white;
 }
