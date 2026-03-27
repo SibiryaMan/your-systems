@@ -4,94 +4,128 @@ import React, { useState, use } from 'react'
 import Link from 'next/link'
 import { ShoppingCart, ChevronDown, Check, SlidersHorizontal, Shield, Activity } from 'lucide-react'
 
-// 1. ПОЛНЫЙ СЛОВАРЬ ИМЕН (КИРИЛЛИЦА)
-const CATEGORY_MAP: Record<string, { title: string; navName: string }> = {
-  'kamery': { title: 'Камеры видеонаблюдения', navName: 'Камеры' },
-  'cameras': { title: 'Камеры видеонаблюдения', navName: 'Камеры' },
-  'videoregistratory': { title: 'Видеорегистраторы', navName: 'Регистраторы' },
-  'registrators': { title: 'Видеорегистраторы', navName: 'Регистраторы' },
-  'registratory': { title: 'Видеорегистраторы', navName: 'Регистраторы' },
-  'montazhnye-korobki': { title: 'Монтажные коробки', navName: 'Коробки' },
-  'kronshteyny': { title: 'Кронштейны', navName: 'Кронштейны' },
-  'mikrofony': { title: 'Микрофоны', navName: 'Микрофоны' },
-  'aksessuary-video': { title: 'Аксессуары для видео', navName: 'Аксессуары' }
-}
-
-const NAV_LINKS = [
-  { slug: 'kamery', name: 'Камеры' },
-  { slug: 'videoregistratory', name: 'Регистраторы' },
-  { slug: 'montazhnye-korobki', name: 'Коробки' },
-  { slug: 'kronshteyny', name: 'Кронштейны' },
-  { slug: 'mikrofony', name: 'Микрофоны' }
-]
-
-// 2. ДАННЫЕ ВИДЕОАНАЛИТИКИ (Общие для камер и регистраторов)
-const VIDEO_ANALYTICS = [
+// 1. КОНСТАНТЫ: ПОЛНАЯ ВИДЕОАНАЛИТИКА (14 ПУНКТОВ)
+const FULL_ANALYTICS = [
   'Детекция движения', 'Детекция т/с', 'Детекция человека', 'Пересечение линии', 
   'Периметр', 'Вторжение в зону', 'Изменение сцены', 'Захват лиц', 
   'Подсчет людей', 'Скопление людей', 'Праздношатание', 'Оставленные предметы', 
   'Распознавание лиц', 'Распознавание автомобильных номеров'
 ]
 
-// 3. ГЕНЕРАТОР ФИЛЬТРОВ (ВСЕ ПУНКТЫ БЕЗ ПОТЕРЬ)
-const MASTER_FILTERS: Record<string, any> = {
+// 2. ИЗОЛИРОВАННЫЕ ГРУППЫ НАВИГАЦИИ (БЕЗ "АКСЕССУАРОВ")
+const NAV_GROUPS = {
+  surveillance: [
+    { slug: 'kamery', name: 'Камеры' },
+    { slug: 'videoregistratory', name: 'Регистраторы' },
+    { slug: 'montazhnye-korobki', name: 'Коробки' },
+    { slug: 'kronshteyny', name: 'Кронштейны' },
+    { slug: 'mikrofony', name: 'Микрофоны' }
+  ],
+  networking: [
+    { slug: 'kommutatory', name: 'Коммутаторы' },
+    { slug: 'marshrutizatory', name: 'Роутеры' }
+  ]
+}
+
+// 3. ПОЛНЫЙ СЛОВАРЬ КИРИЛЛИЦЫ (ЗАЩИТА ОТ ЛАТИНИЦЫ)
+const CYRILLIC_TITLES: Record<string, string> = {
+  'kamery': 'Камеры видеонаблюдения',
+  'cameras': 'Камеры видеонаблюдения',
+  'videoregistratory': 'Видеорегистраторы',
+  'registrators': 'Видеорегистраторы',
+  'registratory': 'Видеорегистраторы',
+  'montazhnye-korobki': 'Монтажные коробки',
+  'aksessuary-video': 'Монтажные коробки', // Редирект названия
+  'kronshteyny': 'Кронштейны для камер',
+  'mikrofony': 'Микрофоны системные',
+  'kommutatory': 'Сетевые коммутаторы',
+  'switches': 'Сетевые коммутаторы',
+  'marshrutizatory': 'Маршрутизаторы и роутеры',
+  'routers': 'Маршрутизаторы и роутеры'
+}
+
+// 4. МАКСИМАЛЬНАЯ БАЗА ФИЛЬТРОВ (ВОССТАНОВЛЕНО ВСЁ)
+const MASTER_FILTERS_DB: Record<string, any> = {
   'cameras': {
     'Бренд': ['Hikvision', 'HiWatch', 'iFlou', 'Ezviz', 'TRASSIR', 'Dahua', 'LTV', 'Tiandy'],
-    'Видеоаналитика': VIDEO_ANALYTICS,
+    'Видеоаналитика': FULL_ANALYTICS,
     'Тип корпуса': ['Купол', 'Цилиндр', 'Компактный', 'Рыбий глаз', 'Взрывозащищенный'],
     'Исполнение': ['Внутреннее', 'Уличное', 'Взрывозащищенное'],
     'Разрешение, Мп': ['2', '4', '5', '6', '8', '12'],
     'Тип объектива': ['Фиксированный', 'Вариофокальный', 'Моторизированный'],
-    'Фокусное расстояние, мм': ['2.7-12', '2.7-13.5', '2.8', '2.8-12', '3.6', '4'],
-    'Подсветка, м': ['от 1 до 15 м', 'от 20 до 40 м', 'от 45 до 90 м', 'от 100 до 200 м'],
+    'Фокусное расстояние, мм': ['2.8', '3.6', '4', '2.7-12', '2.7-13.5'],
+    'Подсветка, м': ['от 1 до 15 м', 'от 20 до 40 м', 'от 45 до 90 м', 'от 100+ м'],
     'Слот под SD-карту': ['Да', 'Нет'],
     'Wi-Fi': ['Да', 'Нет'],
     'PIR-датчик': ['Да', 'Нет'],
-    'Пылевлагозащита': ['IP40', 'IP42', 'IP54', 'IP65', 'IP66', 'IP67', 'IP68', 'Нет'],
+    'Пылевлагозащита': ['IP40', 'IP54', 'IP66', 'IP67', 'IP68', 'Нет'],
     'IK': ['08', '10', 'Нет'],
-    'Аудио': ['Аудиовход', 'Аудиовыход', 'Встроенный динамик', 'Встроенный микрофон', 'Нет'],
+    'Аудио': ['Аудиовход', 'Аудиовыход', 'Встроенный динамик', 'Микрофон'],
     'Тревожный вход/выход': ['Да', 'Нет'],
-    'Питание': ['AC 24В', 'AC100В', 'DC 12В', 'DC 5В', 'PoE']
+    'Питание': ['AC 24В', 'DC 12В', 'DC 5В', 'PoE']
   },
   'recorders': {
     'Бренд': ['Hikvision', 'HiWatch', 'iFlou', 'TRASSIR', 'Dahua', 'LTV', 'Tiandy'],
-    'Видеоаналитика': VIDEO_ANALYTICS,
+    'Видеоаналитика': FULL_ANALYTICS,
     'Количество каналов': ['4', '8', '16', '32', '64', '128'],
-    'Пропуск. способность, Мбит/с': ['40', '60', '80', '160', '256', '320'],
-    'Макс. разрешение записи IP, Мп': ['2', '4', '6', '8', '12', '32'],
     'Количество HDD': ['1', '2', '4', '8', '16'],
+    'Макс. разрешение записи IP, Мп': ['2', '4', '6', '8', '12', '32'],
+    'Пропуск. способность, Мбит/с': ['40', '80', '160', '256', '320'],
+    'PoE порты': ['4 порта', '8 портов', '16 портов', '24 порта', 'Нет'],
+    'Доп. интерфейсы': ['USB', 'RS-485', 'RS-232', 'eSATA', 'Alarm I/O'],
+    'Особенности': ['SFP порт', 'Вывод 4К изображения', 'Для установки в стойку', 'Модуль Wi-Fi'],
     'Трев. входы/выходы': ['Да', 'Нет'],
     'Аудиовходы/выходы': ['Да', 'Нет'],
     'Видеовыходы': ['HDMI', 'VGA', 'BNC'],
-    'Особенности': ['SFP порт', 'Вывод 4К изображения', 'Для установки в стойку', 'Модуль Wi-Fi'],
-    'LAN порты': ['1', '2', '4'],
-    'PoE порты': ['4 порта', '8 портов', '16 портов', '24 порта', 'Нет'],
-    'Доп. интерфейсы': ['USB', 'RS-485', 'RS-232', 'eSATA', 'Alarm I/O']
+    'LAN порты': ['1', '2', '4']
   },
-  'boxes': {
-    'Бренд': ['Hikvision', 'Dahua', 'LTV'],
-    'Материал': ['Пластик', 'Алюминий', 'Сталь'],
-    'Защита': ['IP65', 'IP66', 'IP67']
+  'switches': {
+    'Бренд': ['Hikvision', 'Dahua', 'TP-Link', 'Keenetic', 'MikroTik'],
+    'Тип': ['Неуправляемый', 'Управляемый L2', 'Управляемый L3'],
+    'Количество портов': ['4', '8', '16', '24', '48'],
+    'Количество портов PoE': ['4', '8', '16', '24', '48', 'Нет'],
+    'Скорость портов': ['10/100 Мбит/с', '1 Гбит/с', '10 Гбит/с'],
+    'Бюджет PoE, Вт': ['30-60 Вт', '60-120 Вт', '120-250 Вт', '370+ Вт'],
+    'Особенности': ['SFP порты', 'Uplink порты', 'В стойку 19"', 'Металлический корпус', 'Hi-PoE', 'CCTV режим'],
+    'Питание': ['AC 100-240В', 'DC 12В', 'DC 48-52В', 'PoE-in']
   },
-  'brackets': { 'Бренд': ['Hikvision', 'Dahua', 'LTV'], 'Тип кронштейна': ['Настенный', 'Потолочный', 'На столб'] },
-  'mics': { 'Бренд': ['Stelberry', 'Шорох'], 'Питание, В': ['12В', '5В'], 'Частота, Гц': ['50-15000', '100-10000'] }
+  'boxes': { 
+    'Бренд': ['Hikvision', 'Dahua', 'LTV', 'HiWatch'], 
+    'Материал': ['Пластик', 'Алюминий', 'Сталь'], 
+    'Защита': ['IP65', 'IP66', 'IP67'],
+    'IK': ['08', '10', 'Нет']
+  },
+  'brackets': { 'Бренд': ['Hikvision', 'Dahua', 'HiWatch', 'LTV'], 'Тип кронштейна': ['Настенный', 'Потолочный', 'На столб'] },
+  'microphones': {
+    'Бренд': ['ATIX', 'Dahu', 'ESM', 'Stelberry'],
+    'Питание': ['DC 12В', 'DC 5В', 'DC 9В'],
+    'Акустическая дальность': ['от 1 до 5 м', 'от 5 до 10 м', 'от 10 до 20 м'],
+    'Частота, Гц': ['50 - 15000 Гц', '100 - 10000 Гц', '20 - 20000 Гц']
+  }
 }
 
-const GET_FILTER_KEY = (slug: string): string => {
-  const map: Record<string, string> = {
-    'kamery': 'cameras', 'cameras': 'cameras',
-    'videoregistratory': 'recorders', 'registrators': 'recorders', 'registratory': 'recorders',
-    'montazhnye-korobki': 'boxes', 'kronshteyny': 'brackets', 'mikrofony': 'microphones'
+// 5. ЛОГИКА ОПРЕДЕЛЕНИЯ КОНТЕКСТА
+const getPageContext = (slug: string) => {
+  const isNet = ['kommutatory', 'switches', 'marshrutizatory', 'routers'].includes(slug);
+  
+  let filterKey = 'cameras';
+  if (slug.includes('registr') || slug.includes('record')) filterKey = 'recorders';
+  else if (slug.includes('kommut') || slug.includes('switch')) filterKey = 'switches';
+  else if (slug.includes('korobk') || slug === 'aksessuary-video') filterKey = 'boxes';
+  else if (slug.includes('kronsht')) filterKey = 'brackets';
+  else if (slug.includes('mikrof')) filterKey = 'microphones';
+
+  return {
+    navGroup: isNet ? NAV_GROUPS.networking : NAV_GROUPS.surveillance,
+    filterKey: filterKey,
+    title: CYRILLIC_TITLES[slug] || slug.toUpperCase()
   }
-  return map[slug] || 'cameras'
 }
 
 export default function CatalogPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params)
-  
-  const filterKey = GET_FILTER_KEY(slug)
-  const currentFilters = MASTER_FILTERS[filterKey] || MASTER_FILTERS['cameras']
-  const categoryInfo = CATEGORY_MAP[slug] || { title: slug.toUpperCase(), navName: slug }
+  const { navGroup, filterKey, title } = getPageContext(slug)
+  const currentFilters = MASTER_FILTERS_DB[filterKey]
 
   const [openSections, setOpenSections] = useState<Record<string, boolean>>(
     Object.keys(currentFilters).reduce((acc, key) => ({ ...acc, [key]: true }), {})
@@ -101,8 +135,9 @@ export default function CatalogPage({ params }: { params: Promise<{ slug: string
     <main className="min-h-screen bg-[#FDFDFD] font-sans selection:bg-blue-600 selection:text-white">
       <div className="mx-auto max-w-[1800px] px-8 pt-8 pb-8 flex gap-12 items-start">
         
-        {/* SIDEBAR: СИММЕТРИЯ 32px */}
+        {/* SIDEBAR: ЛОГО + КОНФИГУРАТОР (СИММЕТРИЯ 32px) */}
         <aside className="w-[320px] flex-shrink-0 sticky top-8 h-[calc(100vh-64px)] flex flex-col gap-8">
+          
           <Link href="/" className="flex items-center gap-3 shrink-0 hover:opacity-80 transition-opacity">
              <div className="flex h-10 w-10 items-center justify-center rounded-sm bg-blue-600 text-white shadow-lg"><Shield size={22} fill="currentColor" /></div>
              <span className="text-[24px] font-black uppercase tracking-tighter text-slate-950 pt-0.5">YOUR<span className="text-blue-600">SYSTEMS</span></span>
@@ -143,31 +178,37 @@ export default function CatalogPage({ params }: { params: Promise<{ slug: string
           </div>
         </aside>
 
-        {/* CONTENT */}
+        {/* ПРАВАЯ ЧАСТЬ */}
         <div className="flex-1">
-          <nav className="flex gap-1 mb-8 border-b border-slate-100 pb-0.5">
-            {NAV_LINKS.map((link) => {
-               const isActive = filterKey === GET_FILTER_KEY(link.slug);
+          <nav className="flex gap-1 mb-8 border-b border-slate-100">
+            {navGroup.map((link) => {
+               // Умная подсветка активной вкладки
+               const isActive = slug === link.slug || 
+                               (slug === 'registrators' && link.slug === 'videoregistratory') ||
+                               (slug === 'aksessuary-video' && link.slug === 'montazhnye-korobki');
                return (
-                <Link key={link.slug} href={`/catalog/${link.slug}`} className={`px-6 py-3 text-[11px] font-black uppercase tracking-[0.2em] transition-all border-b-2 ${isActive ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400 hover:text-slate-900 hover:border-slate-200'}`}>{link.name}</Link>
+                <Link key={link.slug} href={`/catalog/${link.slug}`} className={`px-8 py-4 text-[11px] font-black uppercase tracking-[0.25em] transition-all border-b-2 -mb-[2px] ${isActive ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400 hover:text-slate-950 hover:border-slate-200'}`}>
+                  {link.name}
+                </Link>
                );
             })}
           </nav>
 
           <div className="h-10 flex items-center border-b border-slate-100 pb-12 mb-10 box-content">
-            <h1 className="text-4xl font-black uppercase tracking-tighter text-slate-950 leading-none">{categoryInfo.title}</h1>
+            <h1 className="text-4xl font-black uppercase tracking-tighter text-slate-950 leading-none">{title}</h1>
           </div>
 
+          {/* СЕТКА ТОВАРОВ */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {Array.from({ length: 6 }).map((_, p) => (
               <div key={p} className="group bg-white border border-slate-100 p-8 transition-all hover:border-blue-400 hover:shadow-2xl relative overflow-hidden text-left">
-                <div className="mb-6 aspect-square bg-slate-50 flex items-center justify-center text-[10px] font-black uppercase text-slate-200 border border-slate-100">Engineering_Hardware</div>
+                <div className="mb-6 aspect-square bg-slate-50 flex items-center justify-center text-[10px] font-black uppercase text-slate-200 border border-slate-100">Hardware_Preview</div>
                 <div className="mb-4">
-                  <h3 className="text-[16px] font-black uppercase tracking-tight text-slate-900 leading-tight mb-1 line-clamp-1">DH-DEVICE-{filterKey.toUpperCase()}-{p}00</h3>
+                  <h3 className="text-[16px] font-black uppercase tracking-tight text-slate-900 leading-tight mb-1 line-clamp-1">DH-YS-PRO-{filterKey.toUpperCase().substring(0,3)}-{p}00</h3>
                   <p className="text-[10px] font-bold text-blue-600/60 uppercase tracking-widest leading-none">Enterprise_V26_Series</p>
                 </div>
                 <div className="flex items-center justify-between pt-6 border-t border-slate-50">
-                  <span className="text-3xl font-black tracking-tighter text-slate-950 font-sans leading-none">{filterKey === 'recorders' ? '32 900' : '14 890'} ₽</span>
+                  <span className="text-3xl font-black tracking-tighter text-slate-950 font-sans leading-none">{p % 2 === 0 ? '14 890' : '32 400'} ₽</span>
                   <button className="h-12 w-12 bg-slate-950 text-white flex items-center justify-center hover:bg-blue-600 transition-all active:scale-90 shadow-md"><ShoppingCart size={20} /></button>
                 </div>
               </div>
