@@ -6,6 +6,8 @@ interface SidebarProps {
   currentCategory: string;
 }
 
+// --- БАЗЫ ДАННЫХ ФИЛЬТРОВ ---
+
 const SHARED_ANALYTICS = [
   "Детекция движения", "Детекция т/с", "Детекция человека", "Пересечение линии", 
   "Периметр", "Вторжение в зону", "Изменение сцены", "Захват лиц", 
@@ -37,7 +39,7 @@ const NVR_FILTERS: Record<string, string[]> = {
   "Видеоаналитика": SHARED_ANALYTICS,
   "Количество каналов": ["4", "8", "16", "32", "64", "128"],
   "Пропускная способность": ["40 Мбит/с", "60 Мбит/с", "80 Мбит/с", "160 Мбит/с", "256 Мбит/с", "320 Мбит/с"],
-  "Макс. resolution записи": ["2 Мп", "4 Мп", "5 Мп", "6 Мп", "8 Мп", "12 Мп"],
+  "Макс. разрешение записи": ["2 Мп", "4 Мп", "5 Мп", "6 Мп", "8 Мп", "12 Мп"],
   "Количество HDD": ["1", "2", "4", "8", "16", "24"],
   "Трев. входы/выходы": ["да", "нет"],
   "Аудиовходы/выходы": ["да", "нет"],
@@ -55,9 +57,18 @@ const BOX_FILTERS: Record<string, string[]> = {
 };
 
 const MOUNT_FILTERS: Record<string, string[]> = {
-  "Бренд": ["ATIX", "BOXFORCAM", "Dahua", "HiWatch", "Hikvision"], // ОБНОВЛЕНО
+  "Бренд": ["ATIX", "BOXFORCAM", "Dahua", "HiWatch", "Hikvision"],
   "Тип кронштейна": ["Настенный", "Потолочный", "На столб", "На угол", "Адаптер", "Для PTZ камер", "Парапетный"]
 };
+
+const MIC_FILTERS: Record<string, string[]> = {
+  "Бренд": ["ATIX", "Dahua", "ESM", "Stelberry"], // ОБНОВЛЕНО
+  "Питание, В": ["DC 12В", "DC 5В-16В", "PoE (через сплиттер)"],
+  "Акустическая дальность": ["до 5 м", "до 10 м", "до 15 м", "до 20 м"],
+  "Частота, Гц": ["100 - 10000 Гц", "40 - 15000 Гц", "10 - 20000 Гц", "80 - 8000 Гц"]
+};
+
+// --- ОСНОВНОЙ КОМПОНЕНТ ---
 
 export default function Sidebar({ currentCategory }: SidebarProps) {
   const router = useRouter();
@@ -71,6 +82,7 @@ export default function Sidebar({ currentCategory }: SidebarProps) {
     case 'korobki': FILTER_DATA = BOX_FILTERS; break;
     case 'aksessuary-video': FILTER_DATA = BOX_FILTERS; break;
     case 'kronshteiny': FILTER_DATA = MOUNT_FILTERS; break;
+    case 'mikrofony': FILTER_DATA = MIC_FILTERS; break;
     default: FILTER_DATA = CAMERA_FILTERS;
   }
 
@@ -96,7 +108,7 @@ export default function Sidebar({ currentCategory }: SidebarProps) {
     <aside className="w-[320px] bg-[#0f1116] text-white sticky top-20 h-[calc(100vh-80px)] flex flex-col border-r border-white/5 z-40 flex-shrink-0 shadow-2xl overflow-hidden">
       <div className="h-24 w-full flex items-center justify-center relative border-b border-white/5 flex-shrink-0 bg-[#0f1116] z-10">
         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-blue-600 shadow-[0_0_15px_rgba(37,99,235,0.4)]" />
-        <h2 className="text-[20px] font-black uppercase tracking-[0.4em] italic leading-none ml-2">ФИЛЬТРЫ</h2>
+        <h2 className="text-[20px] font-black uppercase tracking-[0.4em] italic leading-none ml-2 text-white">ФИЛЬТРЫ</h2>
       </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar overscroll-contain">
@@ -124,9 +136,7 @@ export default function Sidebar({ currentCategory }: SidebarProps) {
       </div>
 
       <div className="p-8 pt-0 flex-shrink-0 bg-[#0f1116]">
-        <button onClick={applyFilters} className="w-full py-5 bg-blue-600 text-[11px] font-black uppercase tracking-[0.3em] hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 active:scale-95">
-          ПРИМЕНИТЬ ПАРАМЕТРЫ
-        </button>
+        <button onClick={applyFilters} className="w-full py-5 bg-blue-600 text-[11px] font-black uppercase tracking-[0.3em] hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 active:scale-95">ПРИМЕНИТЬ ПАРАМЕТРЫ</button>
       </div>
     </aside>
   );
