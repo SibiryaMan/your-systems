@@ -1,85 +1,48 @@
-import { createClient } from '@/utils/supabase/server'
-import ProductCard from '@/components/ProductCard'
-import Link from 'next/link'
+import { supabase } from '../../../../lib/supabase';
+import Navbar from '../../../../components/Navbar';
+import Sidebar from '../../../../components/Sidebar';
 
-export default async function NetworkPage() {
-  const supabase = createClient()
+export default async function RoutersPage() {
+  // ИСПРАВЛЕНИЕ ОШИБКИ 2339:
+  // Мы сначала дожидаемся самого клиента (если он Promise), 
+  // а затем вызываем .from()
+  const client = await supabase; 
   
-  // Загружаем именно роутеры
-  const { data: products } = await supabase
+  const { data: products } = await client
     .from('products')
     .select('*')
-    .eq('subcategory', 'routers')
-
-  // Навигация в 2 строки (на кириллице)
-  const navItems = [
-    { name: 'Маршрутизаторы', href: '/catalog/network/routers' },
-    { name: 'Коммутаторы', href: '/catalog/network/switches' },
-    { name: 'Точки доступа', href: '/catalog/network/ap' },
-    { name: 'Wi-Fi 6 Роутеры', href: '/catalog/network/wifi6' },
-    { name: 'SFP Модули', href: '/catalog/network/sfp' },
-    { name: 'Антенны', href: '/catalog/network/antennas' },
-  ]
+    .eq('category_slug', 'routers');
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 bg-white min-h-screen">
-      {/* 1. Двухстрочная навигация (Grid 3 колонки на десктопе, 2 на мобилках) */}
-      <nav className="mb-12">
-        <h1 className="text-3xl font-black text-slate-900 mb-6 uppercase">Сетевое оборудование</h1>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {navItems.map((item) => (
-            <Link 
-              key={item.href} 
-              href={item.href}
-              className="flex items-center justify-center p-4 bg-slate-50 border border-slate-200 rounded-xl hover:border-blue-600 hover:text-blue-600 transition-all font-bold text-sm text-center shadow-sm"
-            >
-              {item.name}
-            </Link>
-          ))}
-        </div>
-      </nav>
-
-      <div className="flex flex-col md:flex-row gap-10">
-        {/* 2. Сайдбар (исправленный под сетевое оборудование) */}
-        <aside className="w-full md:w-64 shrink-0">
-          <div className="p-6 border border-slate-200 rounded-2xl bg-white shadow-sm">
-            <h2 className="font-black text-xs uppercase tracking-widest text-slate-400 mb-6">Фильтры</h2>
-            
-            <div className="space-y-8">
-              <div>
-                <p className="font-bold text-sm mb-4">Скорость передачи</p>
-                <div className="space-y-3">
-                  {['100 Мбит/с', '1 Гбит/с', '10 Гбит/с'].map(s => (
-                    <label key={s} className="flex items-center gap-3 text-sm cursor-pointer group">
-                      <input type="checkbox" className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
-                      <span className="group-hover:text-blue-600 transition-colors">{s}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            </div>
-            
-            <button className="w-full mt-8 bg-blue-600 text-white py-3 rounded-xl font-bold text-sm hover:bg-blue-700 transition-colors shadow-lg shadow-blue-100">
-              ПРИМЕНИТЬ
-            </button>
+    <div className="flex flex-col min-h-screen bg-white">
+      <Navbar />
+      <div className="flex flex-1 items-start">
+        {/* Используем Sidebar с корректным пропсом */}
+        <Sidebar currentCategory="routers" />
+        
+        <main className="flex-1 p-16 pt-10">
+          <div className="flex items-center gap-8 mb-12">
+            <h1 className="text-[72px] font-black uppercase tracking-tighter leading-none text-[#1a1c23]">
+              Роутеры
+            </h1>
           </div>
-        </aside>
 
-        {/* 3. Список товаров */}
-        <main className="flex-1">
-          <h2 className="text-2xl font-bold mb-8">Маршрутизаторы</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-            {products?.map(p => (
-              <ProductCard key={p.id} product={p} />
-            ))}
-            {(!products || products.length === 0) && (
-              <div className="col-span-full py-20 text-center border-2 border-dashed border-slate-100 rounded-3xl">
-                <p className="text-slate-400 italic">В этой категории товаров пока нет</p>
+          <div className="grid grid-cols-3 gap-12">
+            {products?.map((p: any) => (
+              <div key={p.id} className="group border border-gray-100 p-8 hover:border-blue-600 transition-all">
+                <div className="aspect-square bg-gray-50 mb-6 flex items-center justify-center relative overflow-hidden">
+                   <span className="text-[10px] font-black text-gray-200 uppercase italic">YourSystems</span>
+                </div>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-[11px] font-black text-blue-600 uppercase tracking-widest">{p.brand}</span>
+                  <span className="text-[18px] font-black italic">{p.price} ₽</span>
+                </div>
+                <h3 className="text-[16px] font-bold uppercase text-[#1a1c23]">{p.name}</h3>
               </div>
-            )}
+            ))}
           </div>
         </main>
       </div>
     </div>
-  )
+  );
 }
