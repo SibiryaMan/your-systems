@@ -1,19 +1,15 @@
 'use client'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { ChevronDown } from 'lucide-react';
 
 interface SidebarProps {
   currentCategory: string;
 }
 
-// --- БАЗЫ ДАННЫХ ФИЛЬТРОВ ---
+// --- БАЗЫ ДАННЫХ ФИЛЬТРОВ (ВСЕ В ОДНОМ МЕСТЕ) ---
 
-const SHARED_ANALYTICS = [
-  "Детекция движения", "Детекция т/с", "Детекция человека", "Пересечение линии", 
-  "Периметр", "Вторжение в зону", "Изменение сцены", "Захват лиц", 
-  "Подсчет людей", "Скопление людей", "Праздношатание", "Оставленные предметы", 
-  "Распознавание лиц", "Распознавание автомобильных номеров"
-];
+const SHARED_ANALYTICS = ["Детекция движения", "Детекция т/с", "Детекция человека", "Пересечение линии", "Периметр", "Вторжение в зону", "Изменение сцены", "Захват лиц", "Подсчет людей", "Скопление людей", "Праздношатание", "Оставленные предметы", "Распознавание лиц", "Распознавание автомобильных номеров"];
 
 const CAMERA_FILTERS: Record<string, string[]> = {
   "Бренд": ["Hikvision", "HiWatch", "iFlou", "Ezviz", "TRASSIR", "Dahua", "LTV", "Tiandy"],
@@ -68,16 +64,8 @@ const MIC_FILTERS: Record<string, string[]> = {
   "Частота, Гц": ["100 - 10000 Гц", "40 - 15000 Гц", "10 - 20000 Гц", "80 - 8000 Гц"]
 };
 
-// ОБНОВЛЕННЫЕ БРЕНДЫ С КАРТИНКИ (v2.6.9)
 const SWITCH_FILTERS: Record<string, string[]> = {
-  "Бренд": [
-    "Aquarius", "Arista", "Aruba", "Asterfusion", "BDCOM", "Brocade", 
-    "Caswell", "Ciena", "Cisco", "D-Link", "Dahua", "Dell", 
-    "Edgecore Networks", "Extreme Networks", "Fujitsu", "H3C", "HP", 
-    "Huawei", "Juniper Networks", "MOXA", "MikroTik", "OSNOVO", 
-    "Orion Networks", "POWERTONE", "Ruijie Networks", "SNR", "TFortis", 
-    "Teltonika", "Tp-Link", "Ubiquiti", "Zyxel", "Дронсхаб"
-  ],
+  "Бренд": ["Aquarius", "Arista", "Aruba", "Asterfusion", "BDCOM", "Brocade", "Caswell", "Ciena", "Cisco", "D-Link", "Dahua", "Dell", "Edgecore Networks", "Extreme Networks", "Fujitsu", "H3C", "HP", "Huawei", "Juniper Networks", "MOXA", "MikroTik", "OSNOVO", "Orion Networks", "POWERTONE", "Ruijie Networks", "SNR", "TFortis", "Teltonika", "Tp-Link", "Ubiquiti", "Zyxel", "Дронсхаб"],
   "Тип коммутатора": ["PoE", "Обычный (non-PoE)", "Промышленный", "Управляемый (L2/L3)", "Неуправляемый"],
   "Количество портов Downlink": ["4", "8", "16", "24", "48"],
   "Количество портов Uplink": ["1", "2", "4"],
@@ -92,13 +80,12 @@ const SWITCH_FILTERS: Record<string, string[]> = {
   "Способ установки": ["В 19\" стойку", "Настольный", "На DIN-рейку", "Настенный"]
 };
 
-// --- ОСНОВНОЙ КОМПОНЕНТ ---
-
 export default function Sidebar({ currentCategory }: SidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [activeFilters, setActiveFilters] = useState<Record<string, string[]>>({});
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({ "Бренд": true });
 
   let FILTER_DATA;
   switch (currentCategory) {
@@ -108,6 +95,8 @@ export default function Sidebar({ currentCategory }: SidebarProps) {
     case 'mikrofony': FILTER_DATA = MIC_FILTERS; break;
     case 'kommutatory': FILTER_DATA = SWITCH_FILTERS; break;
     case 'promyshlennye-kommutatory': FILTER_DATA = SWITCH_FILTERS; break;
+    case 'marshrutizatory': FILTER_DATA = {}; break; // Оставьте место под роутеры
+    case 'routery': FILTER_DATA = {}; break;
     default: FILTER_DATA = CAMERA_FILTERS;
   }
 
@@ -116,6 +105,10 @@ export default function Sidebar({ currentCategory }: SidebarProps) {
     searchParams.forEach((v, k) => { params[k] = v.split(','); });
     setActiveFilters(params);
   }, [searchParams]);
+
+  const toggleSection = (group: string) => {
+    setOpenSections(prev => ({ ...prev, [group]: !prev[group] }));
+  };
 
   const toggleFilter = (cat: string, val: string) => {
     const cur = activeFilters[cat] || [];
@@ -132,50 +125,58 @@ export default function Sidebar({ currentCategory }: SidebarProps) {
   return (
     <aside className="w-[320px] bg-[#0f1116] text-white sticky top-20 h-[calc(100vh-80px)] flex flex-col border-r border-white/5 z-40 flex-shrink-0 shadow-2xl overflow-hidden">
       
-      {/* HEADER: МАТЕМАТИЧЕСКАЯ ЦЕНТРОВКА */}
+      {/* HEADER: МАТЕМАТИЧЕСКАЯ ЦЕНТРОВКА (X и Y) БЕЗ НАКЛОНА */}
       <div className="h-24 w-full flex items-center justify-center relative border-b border-white/5 flex-shrink-0 bg-[#0f1116] z-10">
         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-blue-600 shadow-[0_0_15px_rgba(37,99,235,0.4)]" />
-        <h2 className="text-[20px] font-black uppercase tracking-[0.4em] italic leading-none ml-2 text-white">
+        <h2 className="text-[20px] font-black uppercase tracking-[0.4em] text-white leading-none ml-2">
           ФИЛЬТРЫ
         </h2>
       </div>
 
-      {/* SCROLL AREA: ТЕХНО-НИТЬ У ПРАВОЙ СТЕНКИ */}
       <div className="flex-1 overflow-y-auto custom-scrollbar overscroll-contain">
-        <div className="pl-10 pt-10 pb-10 pr-6 space-y-12">
-          {Object.entries(FILTER_DATA).map(([group, options]) => (
-            <section key={group} className="border-b border-white/5 pb-8 last:border-0">
-              <h3 className="text-[11px] font-black text-blue-600/80 uppercase tracking-[0.25em] mb-6 italic">
-                // {group}
-              </h3>
-              <div className="space-y-4 pl-3">
-                {options.map((opt) => {
-                  const isChecked = activeFilters[group]?.includes(opt);
-                  return (
-                    <label key={opt} className="flex items-center group cursor-pointer">
-                      <input 
-                        type="checkbox" 
-                        className="hidden" 
-                        checked={isChecked} 
-                        onChange={() => toggleFilter(group, opt)} 
-                      />
-                      <div className={`w-4 h-4 border-2 mr-4 transition-all flex items-center justify-center ${isChecked ? 'bg-blue-600 border-blue-600 shadow-[0_0_10px_rgba(37,99,235,0.3)]' : 'border-gray-800 group-hover:border-gray-600'}`}>
-                        {isChecked && <div className="w-1.5 h-1.5 bg-white rotate-45" />}
-                      </div>
-                      <span className={`text-[13px] font-medium transition-colors tracking-tight ${isChecked ? 'text-white font-bold' : 'text-gray-400 group-hover:text-white'}`}>
-                        {opt}
-                      </span>
-                    </label>
-                  );
-                })}
-              </div>
-            </section>
-          ))}
+        <div className="pt-4">
+          {Object.entries(FILTER_DATA).map(([group, options]) => {
+            const isOpen = openSections[group];
+            return (
+              <section key={group} className="border-b border-white/5 last:border-0">
+                {/* ЗАГОЛОВОК АККОРДЕОНА БЕЗ НАКЛОНА */}
+                <button 
+                  onClick={() => toggleSection(group)}
+                  className="w-full px-10 py-6 flex items-center justify-between group hover:bg-white/[0.02] transition-colors"
+                >
+                  <h3 className={`text-[11px] font-black uppercase tracking-[0.25em] transition-colors 
+                    ${isOpen ? 'text-blue-600' : 'text-gray-500 group-hover:text-gray-300'}`}>
+                    // {group}
+                  </h3>
+                  <ChevronDown size={14} className={`text-gray-600 transition-transform duration-300 ${isOpen ? 'rotate-180 text-blue-600' : ''}`} />
+                </button>
+
+                {/* КОНТЕНТ АККОРДЕОНА */}
+                <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-[1200px] opacity-100 pb-10' : 'max-h-0 opacity-0'}`}>
+                  <div className="space-y-4 pl-14 pr-6">
+                    {options.map((opt) => {
+                      const isChecked = activeFilters[group]?.includes(opt);
+                      return (
+                        <label key={opt} className="flex items-center group cursor-pointer">
+                          <input type="checkbox" className="hidden" checked={isChecked} onChange={() => toggleFilter(group, opt)} />
+                          <div className={`w-4 h-4 border-2 mr-4 transition-all flex items-center justify-center ${isChecked ? 'bg-blue-600 border-blue-600' : 'border-gray-800'}`}>
+                            {isChecked && <div className="w-1.5 h-1.5 bg-white rotate-45" />}
+                          </div>
+                          <span className={`text-[13px] font-medium transition-colors ${isChecked ? 'text-white font-bold' : 'text-gray-400 group-hover:text-white'}`}>
+                            {opt}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              </section>
+            );
+          })}
         </div>
       </div>
 
-      {/* FOOTER: ФИКСИРОВАННАЯ КНОПКА ПРИМЕНИТЬ */}
-      <div className="p-8 pt-0 flex-shrink-0 bg-[#0f1116]">
+      <div className="p-8 pt-6 flex-shrink-0 bg-[#0f1116] border-t border-white/5">
         <button 
           onClick={applyFilters} 
           className="w-full py-5 bg-blue-600 text-[11px] font-black uppercase tracking-[0.3em] hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 active:scale-95 text-white"
