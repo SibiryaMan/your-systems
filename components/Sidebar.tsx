@@ -6,8 +6,16 @@ interface SidebarProps {
   currentCategory: string;
 }
 
-// ВОССТАНОВЛЕННЫЙ ПОЛНЫЙ СПИСОК (16 КАТЕГОРИЙ)
-const CAMERA_FILTERS_DATA: Record<string, string[]> = {
+// ОБЩИЙ СТАНДАРТ ВИДЕОАНАЛИТИКИ (14 ПУНКТОВ)
+const SHARED_ANALYTICS = [
+  "Детекция движения", "Детекция т/с", "Детекция человека", "Пересечение линии", 
+  "Периметр", "Вторжение в зону", "Изменение сцены", "Захват лиц", 
+  "Подсчет людей", "Скопление людей", "Праздношатание", "Оставленные предметы", 
+  "Распознавание лиц", "Распознавание автомобильных номеров"
+];
+
+// 1. ФИЛЬТРЫ ДЛЯ КАМЕР (16 КАТЕГОРИЙ)
+const CAMERA_FILTERS: Record<string, string[]> = {
   "Бренд": ["Hikvision", "HiWatch", "iFlou", "Ezviz", "TRASSIR", "Dahua", "LTV", "Tiandy"],
   "Тип корпуса": ["Купол", "Цилиндр", "Компактный", "Рыбий глаз", "Взрывозащищенный"],
   "Исполнение": ["Внутреннее", "Уличное", "Взрывозащищенное"],
@@ -23,12 +31,22 @@ const CAMERA_FILTERS_DATA: Record<string, string[]> = {
   "Аудио": ["Аудиовход", "Аудиовыход", "Встроенный динамик", "Встроенный микрофон", "нет"],
   "Тревожный вход/выход": ["да", "нет"],
   "Питание": ["AC 24В", "AC100В ~ 240В", "DC 12В", "DC 24В", "DC 36В", "DC 5В", "PoE"],
-  "Видеоаналитика": [
-    "Детекция движения", "Детекция т/с", "Детекция человека", "Пересечение линии", 
-    "Периметр", "Вторжение в зону", "Изменение сцены", "Захват лиц", 
-    "Подсчет людей", "Скопление людей", "Праздношатание", "Оставленные предметы", 
-    "Распознавание лиц", "Распознавание автомобильных номеров"
-  ]
+  "Видеоаналитика": SHARED_ANALYTICS
+};
+
+// 2. ФИЛЬТРЫ ДЛЯ РЕГИСТРАТОРОВ (СПЕЦИФИЧЕСКИЕ)
+const NVR_FILTERS: Record<string, string[]> = {
+  "Бренд": ["Hikvision", "HiWatch", "Dahua", "TRASSIR", "LTV", "Tiandy"],
+  "Видеоаналитика": SHARED_ANALYTICS,
+  "Количество каналов": ["4", "8", "16", "32", "64", "128"],
+  "Пропускная способность": ["40 Мбит/с", "60 Мбит/с", "80 Мбит/с", "160 Мбит/с", "256 Мбит/с", "320 Мбит/с"],
+  "Макс. разрешение записи": ["2 Мп", "4 Мп", "5 Мп", "6 Мп", "8 Мп", "12 Мп"],
+  "Количество HDD": ["1", "2", "4", "8", "16", "24"],
+  "Трев. входы/выходы": ["да", "нет"],
+  "Аудиовходы/выходы": ["да", "нет"],
+  "Видеовыходы": ["HDMI", "VGA", "BNC"],
+  "Особенности": ["PoE коммутатор", "Wi-Fi", "eSATA", "RAID 0/1/5/10"],
+  "LAN порты": ["1 x RJ45", "2 x RJ45", "4 x RJ45"]
 };
 
 export default function Sidebar({ currentCategory }: SidebarProps) {
@@ -36,6 +54,9 @@ export default function Sidebar({ currentCategory }: SidebarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [activeFilters, setActiveFilters] = useState<Record<string, string[]>>({});
+
+  // ЛОГИКА: Выбор набора данных в зависимости от текущей категории
+  const FILTER_DATA = currentCategory === 'registratory' ? NVR_FILTERS : CAMERA_FILTERS;
 
   useEffect(() => {
     const params: Record<string, string[]> = {};
@@ -58,7 +79,7 @@ export default function Sidebar({ currentCategory }: SidebarProps) {
   return (
     <aside className="w-[320px] bg-[#0f1116] text-white sticky top-20 h-[calc(100vh-80px)] flex flex-col border-r border-white/5 z-40 flex-shrink-0 shadow-2xl overflow-hidden">
       
-      {/* ЦЕНТРИРОВАННЫЙ ЗАГОЛОВОК (Вертикаль + Горизонталь) */}
+      {/* HEADER: МАТЕМАТИЧЕСКАЯ ЦЕНТРОВКА (X и Y) */}
       <div className="h-24 w-full flex items-center justify-center relative border-b border-white/5 flex-shrink-0 bg-[#0f1116] z-10">
         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-blue-600 shadow-[0_0_15px_rgba(37,99,235,0.4)]" />
         <h2 className="text-[20px] font-black uppercase tracking-[0.4em] italic leading-none ml-2">
@@ -66,10 +87,10 @@ export default function Sidebar({ currentCategory }: SidebarProps) {
         </h2>
       </div>
 
-      {/* СКРОЛЛ-ЗОНА (Скроллбар прижат к правой стенке) */}
+      {/* SCROLL AREA: СКРОЛЛБАР СТРОГО У ПРАВОЙ СТЕНКИ */}
       <div className="flex-1 overflow-y-auto custom-scrollbar overscroll-contain">
         <div className="pl-10 pt-10 pb-10 pr-6 space-y-12">
-          {Object.entries(CAMERA_FILTERS_DATA).map(([group, options]) => (
+          {Object.entries(FILTER_DATA).map(([group, options]) => (
             <section key={group} className="border-b border-white/5 pb-8 last:border-0">
               <h3 className="text-[11px] font-black text-blue-600/80 uppercase tracking-[0.25em] mb-6 italic">
                 // {group}
@@ -95,7 +116,7 @@ export default function Sidebar({ currentCategory }: SidebarProps) {
         </div>
       </div>
 
-      {/* ФИКСИРОВАННАЯ КНОПКА */}
+      {/* FOOTER: ФИКСИРОВАННАЯ КНОПКА ПРИМЕНИТЬ */}
       <div className="p-8 pt-0 flex-shrink-0 bg-[#0f1116]">
         <button 
           onClick={applyFilters} 
