@@ -62,10 +62,34 @@ const MOUNT_FILTERS: Record<string, string[]> = {
 };
 
 const MIC_FILTERS: Record<string, string[]> = {
-  "Бренд": ["ATIX", "Dahua", "ESM", "Stelberry"], // ОБНОВЛЕНО
+  "Бренд": ["ATIX", "Dahua", "ESM", "Stelberry"],
   "Питание, В": ["DC 12В", "DC 5В-16В", "PoE (через сплиттер)"],
   "Акустическая дальность": ["до 5 м", "до 10 м", "до 15 м", "до 20 м"],
   "Частота, Гц": ["100 - 10000 Гц", "40 - 15000 Гц", "10 - 20000 Гц", "80 - 8000 Гц"]
+};
+
+// ОБНОВЛЕННЫЕ БРЕНДЫ С КАРТИНКИ (v2.6.9)
+const SWITCH_FILTERS: Record<string, string[]> = {
+  "Бренд": [
+    "Aquarius", "Arista", "Aruba", "Asterfusion", "BDCOM", "Brocade", 
+    "Caswell", "Ciena", "Cisco", "D-Link", "Dahua", "Dell", 
+    "Edgecore Networks", "Extreme Networks", "Fujitsu", "H3C", "HP", 
+    "Huawei", "Juniper Networks", "MOXA", "MikroTik", "OSNOVO", 
+    "Orion Networks", "POWERTONE", "Ruijie Networks", "SNR", "TFortis", 
+    "Teltonika", "Tp-Link", "Ubiquiti", "Zyxel", "Дронсхаб"
+  ],
+  "Тип коммутатора": ["PoE", "Обычный (non-PoE)", "Промышленный", "Управляемый (L2/L3)", "Неуправляемый"],
+  "Количество портов Downlink": ["4", "8", "16", "24", "48"],
+  "Количество портов Uplink": ["1", "2", "4"],
+  "Количество портов PoE": ["4", "8", "16", "24", "48", "Нет"],
+  "Количество портов Downlink SFP": ["1", "2", "4", "8", "Нет"],
+  "Количество портов Uplink SFP": ["1", "2", "4", "Нет"],
+  "Гигабитные порты": ["Все порты 10/100/1000", "Только Uplink", "Нет (10/100)"],
+  "Общий бюджет PoE (Вт)": ["до 30 Вт", "31-60 Вт", "61-120 Вт", "121-250 Вт", "251-400 Вт", "от 400 Вт"],
+  "Макс. мощность PoE порта (Вт)": ["15.4 Вт (802.3af)", "30 Вт (802.3at)", "60 Вт (Hi-PoE)", "90 Вт (BT)"],
+  "Особенности": ["Режим Extend (250м)", "Watchdog (автоперезагрузка)", "Грозозащита", "VLAN изоляция", "Дисплей"],
+  "Питание": ["AC 220В", "DC 12В", "DC 48В-57В", "Внешний БП", "Встроенный БП"],
+  "Способ установки": ["В 19\" стойку", "Настольный", "На DIN-рейку", "Настенный"]
 };
 
 // --- ОСНОВНОЙ КОМПОНЕНТ ---
@@ -80,9 +104,10 @@ export default function Sidebar({ currentCategory }: SidebarProps) {
   switch (currentCategory) {
     case 'registratory': FILTER_DATA = NVR_FILTERS; break;
     case 'korobki': FILTER_DATA = BOX_FILTERS; break;
-    case 'aksessuary-video': FILTER_DATA = BOX_FILTERS; break;
     case 'kronshteiny': FILTER_DATA = MOUNT_FILTERS; break;
     case 'mikrofony': FILTER_DATA = MIC_FILTERS; break;
+    case 'kommutatory': FILTER_DATA = SWITCH_FILTERS; break;
+    case 'promyshlennye-kommutatory': FILTER_DATA = SWITCH_FILTERS; break;
     default: FILTER_DATA = CAMERA_FILTERS;
   }
 
@@ -106,26 +131,40 @@ export default function Sidebar({ currentCategory }: SidebarProps) {
 
   return (
     <aside className="w-[320px] bg-[#0f1116] text-white sticky top-20 h-[calc(100vh-80px)] flex flex-col border-r border-white/5 z-40 flex-shrink-0 shadow-2xl overflow-hidden">
+      
+      {/* HEADER: МАТЕМАТИЧЕСКАЯ ЦЕНТРОВКА */}
       <div className="h-24 w-full flex items-center justify-center relative border-b border-white/5 flex-shrink-0 bg-[#0f1116] z-10">
         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-blue-600 shadow-[0_0_15px_rgba(37,99,235,0.4)]" />
-        <h2 className="text-[20px] font-black uppercase tracking-[0.4em] italic leading-none ml-2 text-white">ФИЛЬТРЫ</h2>
+        <h2 className="text-[20px] font-black uppercase tracking-[0.4em] italic leading-none ml-2 text-white">
+          ФИЛЬТРЫ
+        </h2>
       </div>
 
+      {/* SCROLL AREA: ТЕХНО-НИТЬ У ПРАВОЙ СТЕНКИ */}
       <div className="flex-1 overflow-y-auto custom-scrollbar overscroll-contain">
         <div className="pl-10 pt-10 pb-10 pr-6 space-y-12">
           {Object.entries(FILTER_DATA).map(([group, options]) => (
             <section key={group} className="border-b border-white/5 pb-8 last:border-0">
-              <h3 className="text-[11px] font-black text-blue-600/80 uppercase tracking-[0.25em] mb-6 italic">// {group}</h3>
+              <h3 className="text-[11px] font-black text-blue-600/80 uppercase tracking-[0.25em] mb-6 italic">
+                // {group}
+              </h3>
               <div className="space-y-4 pl-3">
                 {options.map((opt) => {
                   const isChecked = activeFilters[group]?.includes(opt);
                   return (
                     <label key={opt} className="flex items-center group cursor-pointer">
-                      <input type="checkbox" className="hidden" checked={isChecked} onChange={() => toggleFilter(group, opt)} />
+                      <input 
+                        type="checkbox" 
+                        className="hidden" 
+                        checked={isChecked} 
+                        onChange={() => toggleFilter(group, opt)} 
+                      />
                       <div className={`w-4 h-4 border-2 mr-4 transition-all flex items-center justify-center ${isChecked ? 'bg-blue-600 border-blue-600 shadow-[0_0_10px_rgba(37,99,235,0.3)]' : 'border-gray-800 group-hover:border-gray-600'}`}>
                         {isChecked && <div className="w-1.5 h-1.5 bg-white rotate-45" />}
                       </div>
-                      <span className={`text-[13px] font-medium transition-colors tracking-tight ${isChecked ? 'text-white font-bold' : 'text-gray-400 group-hover:text-white'}`}>{opt}</span>
+                      <span className={`text-[13px] font-medium transition-colors tracking-tight ${isChecked ? 'text-white font-bold' : 'text-gray-400 group-hover:text-white'}`}>
+                        {opt}
+                      </span>
                     </label>
                   );
                 })}
@@ -135,8 +174,14 @@ export default function Sidebar({ currentCategory }: SidebarProps) {
         </div>
       </div>
 
+      {/* FOOTER: ФИКСИРОВАННАЯ КНОПКА ПРИМЕНИТЬ */}
       <div className="p-8 pt-0 flex-shrink-0 bg-[#0f1116]">
-        <button onClick={applyFilters} className="w-full py-5 bg-blue-600 text-[11px] font-black uppercase tracking-[0.3em] hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 active:scale-95">ПРИМЕНИТЬ ПАРАМЕТРЫ</button>
+        <button 
+          onClick={applyFilters} 
+          className="w-full py-5 bg-blue-600 text-[11px] font-black uppercase tracking-[0.3em] hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 active:scale-95 text-white"
+        >
+          ПРИМЕНИТЬ ПАРАМЕТРЫ
+        </button>
       </div>
     </aside>
   );
