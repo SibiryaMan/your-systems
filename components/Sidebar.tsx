@@ -13,7 +13,7 @@ const SHARED_ANALYTICS = [
   "Детекция движения", "Детекция т/с", "Детекция человека", "Пересечение линии", 
   "Периметр", "Вторжение в зону", "Изменение сцены", "Захват лиц", 
   "Подсчет людей", "Скопление людей", "Праздношатание", "Оставленные предметы", 
-  "Распознавание лиц", "Распознавание автомобильных номеров"
+  "Распование лиц", "Распознавание автомобильных номеров"
 ];
 
 const CAMERA_FILTERS: Record<string, string[]> = {
@@ -39,29 +39,24 @@ const NVR_FILTERS: Record<string, string[]> = {
   "Бренд": ["Hikvision", "HiWatch", "Dahua", "TRASSIR", "LTV", "Tiandy"],
   "Видеоаналитика": SHARED_ANALYTICS,
   "Количество каналов": ["4", "8", "16", "32", "64", "128"],
-  "Пропускная способность": ["40 Мбит/с", "60 Мбит/с", "80 Мбит/с", "160 Мбит/с", "256 Мбит/с", "320 Мбит/с"],
-  "Макс. разрешение записи": ["2 Мп", "4 Мп", "5 Мп", "6 Мп", "8 Мп", "12 Мп"],
-  "Количество HDD": ["1", "2", "4", "8", "16", "24"],
+  "Пропускная способность": ["40 Мбит/с", "160 Мбит/с", "320 Мбит/с"],
+  "Макс. разрешение записи": ["2 Мп", "4 Мп", "8 Мп", "12 Мп"],
+  "Количество HDD": ["1", "2", "4", "8", "16"],
   "Трев. входы/выходы": ["да", "нет"],
-  "Аудиовходы/выходы": ["да", "нет"],
   "Видеовыходы": ["HDMI", "VGA", "BNC"],
-  "Особенности": ["PoE коммутатор", "Wi-Fi", "eSATA", "RAID 0/1/5/10", "SFP порт"],
-  "LAN порты": ["1 x RJ45", "2 x RJ45", "4 x RJ45"]
+  "Особенности": ["PoE коммутатор", "eSATA", "RAID 0/1/5/10", "SFP порт"],
+  "LAN порты": ["1 x RJ45", "2 x RJ45"]
 };
 
 const SWITCH_FILTERS: Record<string, string[]> = {
-  "Бренд": ["Aquarius", "Arista", "Aruba", "Asterfusion", "BDCOM", "Brocade", "Caswell", "Ciena", "Cisco", "D-Link", "Dahua", "Dell", "Edgecore Networks", "Extreme Networks", "Fujitsu", "H3C", "HP", "Huawei", "Juniper Networks", "MOXA", "MikroTik", "OSNOVO", "Orion Networks", "POWERTONE", "Ruijie Networks", "SNR", "TFortis", "Teltonika", "Tp-Link", "Ubiquiti", "Zyxel", "Дронсхаб"],
+  "Бренд": ["Aquarius", "Arista", "Aruba", "Asterfusion", "BDCOM", "Brocade", "Cisco", "D-Link", "Dahua", "Dell", "Edgecore Networks", "Extreme Networks", "H3C", "HP", "Huawei", "Juniper Networks", "MOXA", "MikroTik", "OSNOVO", "SNR", "TFortis", "Teltonika", "Tp-Link", "Ubiquiti", "Zyxel", "Дронсхаб"],
   "Тип коммутатора": ["PoE", "Обычный (non-PoE)", "Промышленный", "Управляемый", "Неуправляемый"],
   "Количество портов Downlink": ["4", "8", "16", "24", "48"],
-  "Количество портов Uplink": ["1", "2", "4"],
   "Количество портов PoE": ["4", "8", "16", "24", "48", "Нет"],
-  "Количество портов Downlink SFP": ["1", "2", "4", "8", "Нет"],
-  "Количество портов Uplink SFP": ["1", "2", "4", "Нет"],
   "Гигабитные порты": ["Все порты 1000", "Только Uplink", "Нет"],
   "Общий бюджет PoE (Вт)": ["до 60 Вт", "61-120 Вт", "121-250 Вт", "от 250 Вт"],
   "Макс. мощность PoE порта": ["15.4 Вт", "30 Вт", "60 Вт", "90 Вт"],
   "Особенности": ["Extend 250м", "Watchdog", "Грозозащита", "VLAN изоляция", "Дисплей"],
-  "Питание": ["AC 220В", "DC 12В", "DC 48В", "Внешний БП"],
   "Способ установки": ["В 19\" стойку", "Настольный", "На DIN-рейку", "Настенный"]
 };
 
@@ -70,13 +65,24 @@ const ROUTER_FILTERS: Record<string, string[]> = {
   "Тип маршрутизатора": ["VPN-роутер", "Промышленный", "Wi-Fi роутер", "Mesh-система", "Проводной"],
   "Количество WAN портов": ["1 x WAN", "2 x WAN", "4 x WAN"],
   "Количество LAN портов": ["4", "5", "8", "10", "16", "24"],
-  "Порты SFP / SFP+": ["1 x SFP", "2 x SFP", "4 x SFP", "Нет"],
   "Стандарт Wi-Fi": ["Wi-Fi 4 (N)", "Wi-Fi 5 (AC)", "Wi-Fi 6 (AX)", "Wi-Fi 7 (BE)", "Без Wi-Fi"],
   "PoE выход": ["Да (PoE-Out)", "Нет"],
   "USB порты": ["Для 3G/4G модема", "Для накопителя", "Нет"],
   "Особенности": ["Firewall", "Failover", "Балансировка нагрузки", "SIM-карта"],
-  "Питание": ["AC 220В", "DC 12В-24В", "Passive PoE", "802.3af/at PoE"],
   "Способ установки": ["В 19\" стойку", "Настольный", "На DIN-рейку", "Настенный"]
+};
+
+const ACCESS_POINT_FILTERS: Record<string, string[]> = {
+  "Бренд": ["Ubiquiti", "MikroTik", "TP-Link", "Ruijie", "Aruba", "Cisco", "Huawei", "Zyxel"],
+  "Стандарт Wi-Fi": ["Wi-Fi 4", "Wi-Fi 5", "Wi-Fi 6", "Wi-Fi 6E", "Wi-Fi 7"],
+  "Исполнение": ["Внутренняя (Indoor)", "Уличная (Outdoor)", "Встраиваемая"],
+  "Частотный диапазон": ["2.4 ГГц", "5 ГГц", "2.4 / 5 ГГц", "Три диапазона"],
+  "Скорость передачи": ["до 300 Мбит/с", "до 1200 Мбит/с", "до 1800 Мбит/с", "от 3000 Мбит/с"],
+  "Питание (PoE)": ["Passive PoE", "802.3af (PoE)", "802.3at (PoE+)", "802.3bt (PoE++)"],
+  "Антенны": ["Встроенные", "Внешние", "Секторные"],
+  "Клиентская емкость": ["до 50", "до 150", "до 250", "от 500+"],
+  "Управление": ["Автономное", "Контроллер", "Облачное"],
+  "Особенности": ["MU-MIMO", "Beamforming", "Mesh", "Бесшовный роуминг", "Captive Portal"]
 };
 
 const BOX_FILTERS: Record<string, string[]> = {
@@ -84,7 +90,7 @@ const BOX_FILTERS: Record<string, string[]> = {
   "Материал": ["Пластик (ABS)", "Алюминиевый сплав", "Сталь", "Поликарбонат"],
   "Пылевлагозащита": ["IP44", "IP54", "IP65", "IP66", "IP67"],
   "Ударопрочность (IK)": ["IK08", "IK10", "Нет"],
-  "Особенности": ["Внутренний монтаж", "Уличное исполнение", "Гермовводы", "Под камеру", "Распаячная"]
+  "Особенности": ["Внутренний монтаж", "Уличное исполнение", "Гермовводы", "Распаячная"]
 };
 
 const MOUNT_FILTERS: Record<string, string[]> = {
@@ -118,6 +124,8 @@ export default function Sidebar({ currentCategory }: SidebarProps) {
     case 'promyshlennye-kommutatory': FILTER_DATA = SWITCH_FILTERS; break;
     case 'routery': FILTER_DATA = ROUTER_FILTERS; break;
     case 'marshrutizatory': FILTER_DATA = ROUTER_FILTERS; break;
+    case 'tochki-dostupa': FILTER_DATA = ACCESS_POINT_FILTERS; break;
+    case 'access-points': FILTER_DATA = ACCESS_POINT_FILTERS; break;
     default: FILTER_DATA = CAMERA_FILTERS;
   }
 
@@ -146,7 +154,7 @@ export default function Sidebar({ currentCategory }: SidebarProps) {
   return (
     <aside className="w-[320px] bg-[#0f1116] text-white sticky top-20 h-[calc(100vh-80px)] flex flex-col border-r border-white/5 z-40 flex-shrink-0 shadow-2xl overflow-hidden">
       
-      {/* HEADER: СТРОГО СЛЕВА */}
+      {/* HEADER: СТРОГО СЛЕВА (px-10) */}
       <div className="h-24 w-full flex items-center justify-start px-10 relative border-b border-white/5 flex-shrink-0 bg-[#0f1116] z-10">
         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-blue-600 shadow-[0_0_15px_rgba(37,99,235,0.4)]" />
         <h2 className="text-[20px] font-black uppercase tracking-[0.4em] text-white leading-none">ФИЛЬТРЫ</h2>
@@ -169,7 +177,7 @@ export default function Sidebar({ currentCategory }: SidebarProps) {
                   <ChevronDown size={14} className={`text-gray-600 transition-transform duration-300 ${isOpen ? 'rotate-180 text-blue-600' : ''}`} />
                 </button>
 
-                <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-[1500px] opacity-100 pb-10' : 'max-h-0 opacity-0'}`}>
+                <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-[2000px] opacity-100 pb-10' : 'max-h-0 opacity-0'}`}>
                   <div className="space-y-4 px-10">
                     {options.map((opt) => {
                       const isChecked = activeFilters[group]?.includes(opt);
