@@ -14,7 +14,7 @@ const SHARED_ANALYTICS = [
   "Распознавание лиц", "Распознавание автомобильных номеров"
 ];
 
-// 1. ФИЛЬТРЫ ДЛЯ КАМЕР (16 КАТЕГОРИЙ)
+// 1. ФИЛЬТРЫ ДЛЯ КАМЕР
 const CAMERA_FILTERS: Record<string, string[]> = {
   "Бренд": ["Hikvision", "HiWatch", "iFlou", "Ezviz", "TRASSIR", "Dahua", "LTV", "Tiandy"],
   "Тип корпуса": ["Купол", "Цилиндр", "Компактный", "Рыбий глаз", "Взрывозащищенный"],
@@ -34,7 +34,7 @@ const CAMERA_FILTERS: Record<string, string[]> = {
   "Видеоаналитика": SHARED_ANALYTICS
 };
 
-// 2. ФИЛЬТРЫ ДЛЯ РЕГИСТРАТОРОВ (СПЕЦИФИЧЕСКИЕ)
+// 2. ФИЛЬТРЫ ДЛЯ РЕГИСТРАТОРОВ (NVR) - SFP ПЕРЕНЕСЕН В ОСОБЕННОСТИ
 const NVR_FILTERS: Record<string, string[]> = {
   "Бренд": ["Hikvision", "HiWatch", "Dahua", "TRASSIR", "LTV", "Tiandy"],
   "Видеоаналитика": SHARED_ANALYTICS,
@@ -45,8 +45,17 @@ const NVR_FILTERS: Record<string, string[]> = {
   "Трев. входы/выходы": ["да", "нет"],
   "Аудиовходы/выходы": ["да", "нет"],
   "Видеовыходы": ["HDMI", "VGA", "BNC"],
-  "Особенности": ["PoE коммутатор", "Wi-Fi", "eSATA", "RAID 0/1/5/10"],
+  "Особенности": ["PoE коммутатор", "Wi-Fi", "eSATA", "RAID 0/1/5/10", "SFP порт"], // ПЕРЕНЕСЕНО СЮДА
   "LAN порты": ["1 x RJ45", "2 x RJ45", "4 x RJ45"]
+};
+
+// 3. ФИЛЬТРЫ ДЛЯ КОРОБОК
+const BOX_FILTERS: Record<string, string[]> = {
+  "Бренд": ["ATIX", "BOXFORCAM", "Dahua", "Hikvision", "KadrOn"],
+  "Материал": ["Пластик (ABS)", "Алюминиевый сплав", "Сталь", "Поликарбонат"],
+  "Пылевлагозащита": ["IP44", "IP54", "IP65", "IP66", "IP67"],
+  "Ударопрочность (IK)": ["IK08", "IK10", "Нет"],
+  "Особенности": ["Внутренний монтаж", "Уличное исполнение", "Гермовводы в комплекте", "Под видеокамеру", "Распаячная"]
 };
 
 export default function Sidebar({ currentCategory }: SidebarProps) {
@@ -55,8 +64,13 @@ export default function Sidebar({ currentCategory }: SidebarProps) {
   const searchParams = useSearchParams();
   const [activeFilters, setActiveFilters] = useState<Record<string, string[]>>({});
 
-  // ЛОГИКА: Выбор набора данных в зависимости от текущей категории
-  const FILTER_DATA = currentCategory === 'registratory' ? NVR_FILTERS : CAMERA_FILTERS;
+  let FILTER_DATA;
+  switch (currentCategory) {
+    case 'registratory': FILTER_DATA = NVR_FILTERS; break;
+    case 'korobki': FILTER_DATA = BOX_FILTERS; break;
+    case 'aksessuary-video': FILTER_DATA = BOX_FILTERS; break;
+    default: FILTER_DATA = CAMERA_FILTERS;
+  }
 
   useEffect(() => {
     const params: Record<string, string[]> = {};
@@ -79,7 +93,7 @@ export default function Sidebar({ currentCategory }: SidebarProps) {
   return (
     <aside className="w-[320px] bg-[#0f1116] text-white sticky top-20 h-[calc(100vh-80px)] flex flex-col border-r border-white/5 z-40 flex-shrink-0 shadow-2xl overflow-hidden">
       
-      {/* HEADER: МАТЕМАТИЧЕСКАЯ ЦЕНТРОВКА (X и Y) */}
+      {/* HEADER: МАТЕМАТИЧЕСКАЯ ЦЕНТРОВКА */}
       <div className="h-24 w-full flex items-center justify-center relative border-b border-white/5 flex-shrink-0 bg-[#0f1116] z-10">
         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-blue-600 shadow-[0_0_15px_rgba(37,99,235,0.4)]" />
         <h2 className="text-[20px] font-black uppercase tracking-[0.4em] italic leading-none ml-2">
@@ -87,7 +101,7 @@ export default function Sidebar({ currentCategory }: SidebarProps) {
         </h2>
       </div>
 
-      {/* SCROLL AREA: СКРОЛЛБАР СТРОГО У ПРАВОЙ СТЕНКИ */}
+      {/* SCROLL AREA: СКРОЛЛБАР У ПРАВОЙ СТЕНКИ */}
       <div className="flex-1 overflow-y-auto custom-scrollbar overscroll-contain">
         <div className="pl-10 pt-10 pb-10 pr-6 space-y-12">
           {Object.entries(FILTER_DATA).map(([group, options]) => (
@@ -104,7 +118,7 @@ export default function Sidebar({ currentCategory }: SidebarProps) {
                       <div className={`w-4 h-4 border-2 mr-4 transition-all flex items-center justify-center ${isChecked ? 'bg-blue-600 border-blue-600 shadow-[0_0_10px_rgba(37,99,235,0.3)]' : 'border-gray-800 group-hover:border-gray-600'}`}>
                         {isChecked && <div className="w-1.5 h-1.5 bg-white rotate-45" />}
                       </div>
-                      <span className={`text-[13px] font-medium transition-colors tracking-tight ${isChecked ? 'text-white' : 'text-gray-400 group-hover:text-white'}`}>
+                      <span className={`text-[13px] font-medium transition-colors tracking-tight ${isChecked ? 'text-white font-bold' : 'text-gray-400 group-hover:text-white'}`}>
                         {opt}
                       </span>
                     </label>
@@ -116,7 +130,7 @@ export default function Sidebar({ currentCategory }: SidebarProps) {
         </div>
       </div>
 
-      {/* FOOTER: ФИКСИРОВАННАЯ КНОПКА ПРИМЕНИТЬ */}
+      {/* FOOTER: КНОПКА ПРИМЕНИТЬ */}
       <div className="p-8 pt-0 flex-shrink-0 bg-[#0f1116]">
         <button 
           onClick={applyFilters} 
