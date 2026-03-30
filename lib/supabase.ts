@@ -1,14 +1,30 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Прямая проверка переменных среды
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+// Инициализация клиента Supabase
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-// Если консоль в браузере выдаст эти ошибки — файл .env.local не читается
-if (!supabaseUrl) console.error("ОШИБКА: NEXT_PUBLIC_SUPABASE_URL не определен!");
-if (!supabaseAnonKey) console.error("ОШИБКА: NEXT_PUBLIC_SUPABASE_ANON_KEY не определен!");
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-export const supabase = createClient(
-  supabaseUrl || 'https://placeholder.supabase.co', 
-  supabaseAnonKey || 'placeholder-key'
-);
+/**
+ * Универсальная функция получения категорий для YourSystems v2.6.7
+ * Забирает плоский список всех категорий для последующей фильтрации в Sidebar
+ */
+export const getFullCategoryTree = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('id, parent_id, name, slug, specs, icon')
+      .order('id', { ascending: true });
+
+    if (error) {
+      console.error('Ошибка при загрузке категорий из Supabase:', error.message);
+      return [];
+    }
+
+    return data || [];
+  } catch (err) {
+    console.error('Критическая ошибка API:', err);
+    return [];
+  }
+};

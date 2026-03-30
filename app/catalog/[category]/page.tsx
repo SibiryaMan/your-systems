@@ -1,135 +1,104 @@
-import Link from 'next/link';
-import { supabase } from '../../../lib/supabase';
-import Sidebar from '../../../components/Sidebar';
-import Navbar from '../../../components/Navbar';
+import { supabase, getFullCategoryTree } from '@/lib/supabase';
+import Sidebar from '@/components/Sidebar';
+import Navbar from '@/components/Navbar';
+import { notFound } from 'next/navigation';
 
-// 1. ВЕТКА: ВИДЕОНАБЛЮДЕНИЕ
-const SAFETY_NAV = [
-  { name: 'КАМЕРЫ', slug: 'kamery' },
-  { name: 'РЕГИСТРАТОРЫ', slug: 'registratory' },
-  { name: 'КОРОБКИ', slug: 'korobki' },
-  { name: 'КРОНШТЕЙНЫ', slug: 'kronshteiny' },
-  { name: 'МИКРОФОНЫ', slug: 'mikrofony' },
-];
-
-// 2. ВЕТКА: СЕТЕВОЕ ОБОРУДОВАНИЕ (v2.6.7 - ПОЛНОЕ СООТВЕТСТВИЕ URL)
-const NETWORK_NAV = [
-  { name: 'КОММУТАТОРЫ', slug: 'kommutatory' },
-  { name: 'ПРОМ. КОММУТАТОРЫ', slug: 'promyshlennye-kommutatory' },
-  { name: 'МАРШРУТИЗАТОРЫ', slug: 'marshrutizatory' },
-  { name: 'РОУТЕРЫ', slug: 'routery' },
-  { name: 'ТОЧКИ ДОСТУПА', slug: 'tochki-dostupa' },
-  { name: 'WI-FI МОСТЫ', slug: 'wi-fi-mosty' },
-  { name: 'SFP МОДУЛИ', slug: 'sfp-moduli' },
-  { name: 'POE ИНЖЕКТОРЫ', slug: 'poe-inzhektory' },
-  { name: 'АНТЕННЫ', slug: 'antenny' },
-  { name: 'ТЕЛЕМЕТРИЯ', slug: 'pogruzhnaya-telemetriya' },
-];
-
-export default async function CatalogPage({ 
-  params, 
-  searchParams 
-}: { 
-  params: Promise<{ category: string }>,
-  searchParams: Promise<{ [key: string]: string | undefined }> 
-}) {
-  // 1. Распаковка асинхронных параметров Next.js 15
+export default async function CatalogPage({ params }: { params: Promise<{ category: string }> }) {
+  // 1. Разворачиваем параметры URL (Next.js 15+ Requirement)
   const resolvedParams = await params;
-  const resolvedSearchParams = await searchParams;
-  const rawCategory = resolvedParams.category;
+  const categorySlug = resolvedParams.category;
 
-  // 2. Определение активной категории
-  const activeCategory = rawCategory === 'aksessuary-video' ? 'korobki' : rawCategory;
-
-  // 3. ГАРАНТИРОВАННАЯ ПРОВЕРКА ВЕТКИ КАТАЛОГА
-  const isNetworkBranch = NETWORK_NAV.some(item => item.slug === activeCategory);
-  const currentSubNav = isNetworkBranch ? NETWORK_NAV : SAFETY_NAV;
-
-  // 4. Запрос к базе Supabase
-  let query = supabase
-    .from('products')
+  // 2. Получаем полное дерево категорий для Sidebar
+  const allCategories = await getFullCategoryTree();
+  
+  // 3. Получаем данные текущей активной категории
+  const { data: activeCategory, error: catError } = await supabase
+    .from('categories')
     .select('*')
-    .eq('category_slug', activeCategory);
+    .eq('slug', categorySlug)
+    .single();
 
-  // Фильтрация по бренду
-  if (resolvedSearchParams.brand) {
-    query = query.in('brand', resolvedSearchParams.brand.split(','));
+  if (catError || !activeCategory) {
+    return notFound();
   }
 
-  // Динамические фильтры по JSONB specs
-  Object.entries(resolvedSearchParams).forEach(([key, value]) => {
-    if (key !== 'brand' && value) {
-      const values = value.split(',');
-      const formattedValues = `(${values.map(v => `"${v}"`).join(',')})`;
-      query = query.filter(`specs->>${key}`, 'in', formattedValues);
-    }
-  });
+  // 4. ЛОГИКА СБОРА ТОВАРОВ (Глубокий поиск)
+  // Находим все ID подкатегорий (фильтров), которые принадлежат текущей категории
+  const subCategoryIds = allCategories
+    .filter((c: any) => c.parent_id === activeCategory.id)
+    .map((c: any) => c.id);
 
-  const { data: products } = await query;
+  // Собираем массив всех ID для поиска (сама категория + её дети)
+  const targetIds = [activeCategory.id, ...subCategoryIds];
+
+  // Запрашиваем товары, которые входят в любой из этих ID
+  const { data: products, error: prodError } = await supabase
+    .from('products')
+    .select('*')
+    .in('category_id', targetIds)
+    .order('id', { ascending: false });
 
   return (
-    <div className="flex flex-col min-h-screen bg-white font-sans selection:bg-blue-600 overflow-x-hidden">
+    <div className="min-h-screen bg-white">
+      {/* Шапка сайта */}
       <Navbar />
-      
-      <div className="flex flex-1 items-start bg-white">
-        {/* Сайдбар автоматически подхватывает фильтры по activeCategory */}
-        <Sidebar currentCategory={activeCategory} />
+
+      <div className="flex flex-1 items-start">
+        {/* Боковая панель: передаем все категории и текущую */}
+        <Sidebar 
+          categories={allCategories || []} 
+          currentCategory={activeCategory} 
+        />
         
-        <main className="flex-1 p-16 pt-6 bg-white min-h-[calc(100vh-80px)]">
+        <main className="flex-1 p-16 pt-10 bg-white min-h-[calc(100vh-80px)]">
+          {/* Хлебные крошки / Заголовок */}
+          <div className="mb-10">
+            <h1 className="text-3xl font-black uppercase tracking-tight text-black">
+              {activeCategory.name}
+            </h1>
+            <div className="h-1.5 w-24 bg-blue-600 mt-3 shadow-[0_2px_10px_rgba(59,130,246,0.3)]"></div>
+          </div>
           
-          {/* ДВУХСТРОЧНАЯ НАВИГАЦИЯ С ЦЕНТРИРОВАННОЙ ЛИНИЕЙ (v2.6.7) */}
-          <nav className="flex flex-wrap gap-x-10 gap-y-6 mb-12 border-b border-gray-100 pb-3 items-end">
-            {currentSubNav.map((item) => (
-              <Link 
-                key={item.slug} 
-                href={`/catalog/${item.slug}`}
-                className={`text-[12px] font-black uppercase tracking-[0.3em] transition-all whitespace-nowrap relative ${
-                  activeCategory === item.slug 
-                    ? 'text-blue-600' 
-                    : 'text-gray-300 hover:text-[#1a1c23]'
-                }`}
-              >
-                {item.name}
-                
-                {/* Активная линия: строго по центру между строк (-bottom-[15px]) */}
-                {activeCategory === item.slug && (
-                  <div className="absolute -bottom-[15px] left-0 w-full h-1 bg-blue-600 shadow-[0_0_10px_rgba(37,99,235,0.15)]" />
-                )}
-              </Link>
-            ))}
-          </nav>
-
-          {/* СЕТКА ТОВАРОВ YourSystems Hardware */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-14">
+          {/* Сетка товаров YourSystems v2.6.7 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
             {products && products.length > 0 ? (
-              products.map((item: any) => (
-                <div key={item.id} className="group cursor-pointer">
-                  <div className="aspect-square bg-[#f9fafb] mb-6 flex items-center justify-center border border-gray-100 group-hover:border-blue-600 transition-all relative overflow-hidden">
-                    <div className="absolute top-4 left-4 text-[9px] font-black text-gray-200 uppercase tracking-widest italic opacity-40">
-                      YourSystems Hardware
+              products.map((product) => (
+                <div 
+                  key={product.id} 
+                  className="group border border-gray-100 p-8 rounded-sm hover:border-blue-500 transition-all duration-500 bg-white hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)]"
+                >
+                  <div className="aspect-square bg-gray-50 mb-6 flex items-center justify-center overflow-hidden relative">
+                    <span className="text-[10px] text-gray-300 uppercase font-black tracking-widest group-hover:scale-110 transition-transform duration-700">
+                      YourSystems Engineering
+                    </span>
+                    <div className="absolute top-0 right-0 bg-blue-600 text-white text-[10px] font-bold px-2 py-1 uppercase opacity-0 group-hover:opacity-100 transition-opacity">
+                      В наличии
                     </div>
-                    <div className="absolute bottom-0 left-0 h-1 bg-blue-600 w-0 group-hover:w-full transition-all duration-500" />
                   </div>
-
-                  <div className="flex justify-between items-end px-1">
-                    <div className="flex flex-col">
-                      <span className="text-[11px] font-black text-blue-600 uppercase tracking-widest mb-1">
-                        {item.brand || 'YourSystems'}
-                      </span>
-                      <h3 className="text-[17px] font-black uppercase tracking-tighter leading-tight text-[#1a1c23]">
-                        {item.name}
-                      </h3>
-                    </div>
-                    <span className="text-[20px] font-black italic text-[#1a1c23] ml-4 whitespace-nowrap">
-                      {item.price ? `${item.price} ₽` : '—'}
+                  
+                  <h2 className="font-bold text-lg mb-3 text-black group-hover:text-blue-600 transition-colors leading-tight">
+                    {product.name}
+                  </h2>
+                  
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-black text-black">
+                      {product.price > 0 ? `${product.price.toLocaleString()} ₽` : 'Цена по запросу'}
                     </span>
                   </div>
+                  
+                  <button className="w-full mt-6 py-3 border border-black text-[10px] font-black uppercase tracking-widest hover:bg-black hover:text-white transition-all duration-300">
+                    Подробнее
+                  </button>
                 </div>
               ))
             ) : (
-              <div className="col-span-full py-20 flex flex-col items-center justify-center border-2 border-dashed border-gray-100 rounded-[40px] bg-gray-50/10">
-                <p className="text-gray-400 font-black uppercase tracking-[0.3em] text-center text-[13px] italic">
-                  Система YourSystems ожидает поступления оборудования <br /> в категорию "{activeCategory.toUpperCase()}"
+              /* Заглушка при пустой категории */
+              <div className="col-span-full py-32 text-center border-2 border-dashed border-gray-100 rounded-sm">
+                <div className="text-gray-200 text-6xl mb-6">◌</div>
+                <p className="text-gray-400 font-bold uppercase tracking-[0.2em] text-xs">
+                  Инженерная система YourSystems <br /> 
+                  ожидает пополнения в разделе <br />
+                  <span className="text-gray-300">"{activeCategory.name}"</span>
                 </p>
               </div>
             )}
