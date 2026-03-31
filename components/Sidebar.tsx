@@ -19,7 +19,6 @@ export default function Sidebar({ categories = [], currentCategory }: { categori
   const [selected, setSelected] = useState<string[]>([]);
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
 
-  // Строгий сброс при смене категории
   useEffect(() => {
     setOpenGroups({});
   }, [currentCategory?.id]);
@@ -43,11 +42,13 @@ export default function Sidebar({ categories = [], currentCategory }: { categori
   }, {});
 
   const groupOrder = [
-    'Бренд', 'Материал', 'Видеоаналитика', 'Количество каналов', 'Пропуск. способность, Мбит/с', 
-    'Разрешение, Мп', 'Количество HDD', 'LAN порты', 'Аудиовходы/выходы', 'Трев. входы/выходы', 
-    'Видеовыходы', 'Тип корпуса', 'Исполнение', 'Тип объектива', 'Фокусное расстояние, мм', 
-    'Подсветка, м', 'Аудио', 'Тревожный вход/выход', 'Пылевлагозащита', 'IK', 
-    'Слот под SD-карту', 'Wi-Fi', 'PIR-датчик', 'Особенности', 'Питание'
+    'Бренд', 'Тип кронштейна', 'Тип микрофона', 'Материал', 'Акустическая дальность', 
+    'Частота, Гц', 'Макс. нагрузка, кг', 'Видеоаналитика', 'Количество каналов', 
+    'Пропуск. способность, Мбит/с', 'Разрешение, Мп', 'Количество HDD', 'LAN порты', 
+    'Аудиовходы/выходы', 'Трев. входы/выходы', 'Видеовыходы', 'Тип корпуса', 
+    'Исполнение', 'Тип объектива', 'Фокусное расстояние, мм', 'Подсветка, м', 
+    'Аудио', 'Тревожный вход/выход', 'Пылевлагозащита', 'IK', 'Слот под SD-карту', 
+    'Wi-Fi', 'PIR-датчик', 'Особенности', 'Питание, В', 'Питание'
   ];
 
   const sortedGroupNames = Object.keys(groups).sort((a, b) => {
@@ -69,10 +70,9 @@ export default function Sidebar({ categories = [], currentCategory }: { categori
         </div>
 
         <div className="flex-1 overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-blue-500/10 scrollbar-track-transparent">
-          <div className="flex flex-col min-h-full justify-between">
+          <div className="flex flex-col min-h-full">
             {sortedGroupNames.map((groupName) => {
               const isOpen = !!openGroups[groupName];
-              
               const sortedItems = [...groups[groupName]].sort((a: any, b: any) => {
                 const orderA = parseInt(a.specs?.sort_order) || 999;
                 const orderB = parseInt(b.specs?.sort_order) || 999;
@@ -80,10 +80,10 @@ export default function Sidebar({ categories = [], currentCategory }: { categori
               });
 
               return (
-                <div key={groupName} className={`flex flex-col transition-all ${isOpen ? 'py-2' : 'py-0'}`}>
+                <div key={groupName} className="flex flex-col">
                   <button 
                     onClick={() => setOpenGroups(prev => ({...prev, [groupName]: !prev[groupName]}))} 
-                    className={`w-full flex items-center justify-between text-[10px] font-black uppercase tracking-[0.2em] transition-colors py-2 ${
+                    className={`w-full flex items-center justify-between text-[10px] font-black uppercase tracking-[0.2em] py-2 transition-colors ${
                       isOpen ? 'text-blue-500' : 'text-gray-500 hover:text-white'
                     }`}
                   >
@@ -92,17 +92,18 @@ export default function Sidebar({ categories = [], currentCategory }: { categori
                   </button>
                   
                   {isOpen && (
-                    <div className="flex flex-col gap-2 mt-2 mb-3 pl-1 animate-in fade-in duration-300">
+                    /* gap-0.5 делает отступ в 3 раза меньше чем был */
+                    <div className="flex flex-col gap-0.5 mt-1 mb-4 pl-1 animate-in fade-in duration-300">
                       {sortedItems.map((item) => (
                         <div 
                           key={item.id} 
-                          className="flex items-center cursor-pointer group"
+                          className="flex items-center cursor-pointer group py-0.5"
                           onClick={() => toggleFilter(item.slug)}
                         >
-                          <div className={`w-3.5 h-3.5 border transition-all flex items-center justify-center mr-4 ${
-                            selected.includes(item.slug) ? 'bg-blue-600 border-blue-600 shadow-[0_0_10px_rgba(59,130,246,0.3)]' : 'border-white/10 group-hover:border-white/30'
+                          <div className={`w-3 h-3 border transition-all flex items-center justify-center mr-3 ${
+                            selected.includes(item.slug) ? 'bg-blue-600 border-blue-600' : 'border-white/10 group-hover:border-white/30'
                           }`}>
-                            {selected.includes(item.slug) && <div className="w-1.5 h-1.5 bg-white rounded-full shadow-sm" />}
+                            {selected.includes(item.slug) && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
                           </div>
                           <span className={`text-[11px] font-bold uppercase tracking-tight transition-colors ${
                             selected.includes(item.slug) ? 'text-white' : 'text-gray-400 group-hover:text-gray-200'
@@ -113,7 +114,7 @@ export default function Sidebar({ categories = [], currentCategory }: { categori
                       ))}
                     </div>
                   )}
-                  {!isOpen && <div className="border-b border-white/5 w-full mt-auto" />}
+                  {!isOpen && <div className="border-b border-white/5 w-full" />}
                 </div>
               );
             })}
