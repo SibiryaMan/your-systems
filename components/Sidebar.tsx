@@ -19,10 +19,12 @@ export default function Sidebar({ categories = [], currentCategory }: { categori
   const [selected, setSelected] = useState<string[]>([]);
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
 
+  // 1. СТРОГИЙ СБРОС: Сворачиваем всё при смене категории
   useEffect(() => {
     setOpenGroups({});
   }, [currentCategory?.id]);
 
+  // 2. СИНХРОНИЗАЦИЯ: Читаем фильтры из URL
   useEffect(() => {
     const active = searchParams.get('filters')?.split(',') || [];
     setSelected(active);
@@ -35,24 +37,31 @@ export default function Sidebar({ categories = [], currentCategory }: { categori
     router.push(`?${params.toString()}`, { scroll: false });
   };
 
+  // Группировка
   const subItems = categories.filter((c: any) => c.parent_id === currentCategory?.id);
   const groups = subItems.reduce((acc: any, item: any) => {
     const g = item.specs?.group || 'Прочее';
     if (!acc[g]) acc[g] = []; acc[g].push(item); return acc;
   }, {});
 
-  // ОБНОВЛЕННЫЙ ИНЖЕНЕРНЫЙ РЕЕСТР (Видеоаналитика на 2-м месте)
+  // ИНЖЕНЕРНЫЙ ПОРЯДОК ГРУПП (Build 74 — Mikrodrive Optimized)
   const groupOrder = [
     'Бренд',
-    'Видеоаналитика', // Теперь здесь для Камер и Регистраторов
+    'Видеоаналитика',
+    // --- ПРИОРИТЕТ MIKRODRIVE / ПРОМЫШЛЕННЫЕ РОУТЕРЫ ---
+    'Стандарт связи',
+    'Количество SIM-карт',
+    'Интерфейсы',
+    'Исполнение',
     // --- СЕТЕВОЕ ОБОРУДОВАНИЕ ---
+    'Частота Wi-Fi',
+    'Стандарт Wi-Fi',
+    'Мобильная связь',
+    'Скорость портов',
+    'Количество портов LAN',
+    'Количество портов WAN',
     'Тип маршрутизатора',
     'Тип коммутатора',
-    'Количество портов WAN',
-    'Количество портов LAN',
-    'Мобильная сеть',
-    'Стандарт Wi-Fi',
-    'Частота',
     'Количество портов Downlink',
     'Количество портов Uplink',
     'Количество портов PoE',
@@ -68,20 +77,18 @@ export default function Sidebar({ categories = [], currentCategory }: { categori
     'Тип объектива',
     'Фокусное расстояние, мм',
     'Тип корпуса',
-    'Исполнение',
     'Подсветка, м',
     'Аудио',
     'Количество каналов',
     'Пропуск. способность, Мбит/с',
     'Количество HDD',
     'LAN порты',
-    // --- АКСЕССУАРЫ И СКУД ---
+    // --- ОБЩИЕ ПАРАМЕТРЫ ---
     'Тип кронштейна',
     'Макс. нагрузка, кг',
     'Тип микрофона',
     'Акустическая дальность',
     'Частота, Гц',
-    // --- ОБЩИЕ ПАРАМЕТРЫ ---
     'Пылевлагозащита',
     'IK',
     'Слот под SD-карту',
@@ -127,7 +134,7 @@ export default function Sidebar({ categories = [], currentCategory }: { categori
                   <button 
                     onClick={() => setOpenGroups(prev => ({...prev, [groupName]: !prev[groupName]}))} 
                     className={`w-full flex items-start justify-between text-[10px] font-black uppercase tracking-[0.2em] py-2 transition-colors text-left ${
-                      isOpen ? 'text-blue-600' : 'text-gray-500 hover:text-white'
+                      isOpen ? 'text-blue-500' : 'text-gray-500 hover:text-white'
                     }`}
                   >
                     <span className="whitespace-normal leading-tight pr-4">{groupName}</span>
