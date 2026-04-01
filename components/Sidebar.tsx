@@ -42,13 +42,13 @@ export default function Sidebar({ categories = [], currentCategory }: { categori
   }, {});
 
   const groupOrder = [
-    'Бренд', 'Тип кронштейна', 'Тип микрофона', 'Материал', 'Акустическая дальность', 
+    'Бренд', 'Тип коммутатора', 'Количество портов Downlink', 'Количество портов Uplink', 
+    'Количество портов PoE', 'Количество портов Downlink SFP', 'Количество портов Uplink SFP', 
+    'Гигабитные порты', 'Общий бюджет PoE (Вт)', 'Максимальная мощность PoE порта (Вт)', 
+    'Способ установки', 'Тип кронштейна', 'Тип микрофона', 'Материал', 'Акустическая дальность', 
     'Частота, Гц', 'Макс. нагрузка, кг', 'Видеоаналитика', 'Количество каналов', 
     'Пропуск. способность, Мбит/с', 'Разрешение, Мп', 'Количество HDD', 'LAN порты', 
-    'Аудиовходы/выходы', 'Трев. входы/выходы', 'Видеовыходы', 'Тип корпуса', 
-    'Исполнение', 'Тип объектива', 'Фокусное расстояние, мм', 'Подсветка, м', 
-    'Аудио', 'Тревожный вход/выход', 'Пылевлагозащита', 'IK', 'Слот под SD-карту', 
-    'Wi-Fi', 'PIR-датчик', 'Особенности', 'Питание, В', 'Питание'
+    'Пылевлагозащита', 'IK', 'Особенности', 'Питание, В', 'Питание'
   ];
 
   const sortedGroupNames = Object.keys(groups).sort((a, b) => {
@@ -81,18 +81,18 @@ export default function Sidebar({ categories = [], currentCategory }: { categori
 
               return (
                 <div key={groupName} className="flex flex-col">
+                  {/* ИЗМЕНЕНО: whitespace-normal и leading-tight для переноса строк */}
                   <button 
                     onClick={() => setOpenGroups(prev => ({...prev, [groupName]: !prev[groupName]}))} 
-                    className={`w-full flex items-center justify-between text-[10px] font-black uppercase tracking-[0.2em] py-2 transition-colors ${
+                    className={`w-full flex items-start justify-between text-[10px] font-black uppercase tracking-[0.2em] py-2 transition-colors text-left ${
                       isOpen ? 'text-blue-500' : 'text-gray-500 hover:text-white'
                     }`}
                   >
-                    <span className="truncate">{groupName}</span>
-                    <span className="text-[9px] opacity-30">{isOpen ? '−' : '+'}</span>
+                    <span className="whitespace-normal leading-tight pr-4">{groupName}</span>
+                    <span className="text-[9px] opacity-30 shrink-0 mt-0.5">{isOpen ? '−' : '+'}</span>
                   </button>
                   
                   {isOpen && (
-                    /* gap-0.5 делает отступ в 3 раза меньше чем был */
                     <div className="flex flex-col gap-0.5 mt-1 mb-4 pl-1 animate-in fade-in duration-300">
                       {sortedItems.map((item) => (
                         <div 
