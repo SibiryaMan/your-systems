@@ -2,7 +2,6 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
 export async function createClient() {
-  // В Next.js 15 здесь ОБЯЗАТЕЛЬНО должен быть await
   const cookieStore = await cookies() 
 
   return createServerClient(
@@ -18,10 +17,15 @@ export async function createClient() {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options)
             )
-          } catch {
-            // Это нормально для серверных компонентов
-          }
+          } catch {}
         },
+      },
+      global: {
+        fetch: (url, options) =>
+          fetch(url, {
+            ...options,
+            cache: 'no-store',
+          }),
       },
     }
   )
