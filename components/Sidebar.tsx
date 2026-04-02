@@ -37,7 +37,7 @@ export default function Sidebar({ categories = [], currentCategory }: { categori
     router.push(`?${params.toString()}`, { scroll: false });
   };
 
-  // Группировка дочерних категорий
+  // Группировка дочерних категорий (фильтров)
   const subItems = categories.filter((c: any) => c.parent_id === currentCategory?.id);
   const groups = subItems.reduce((acc: any, item: any) => {
     const g = item.specs?.group || 'Прочее';
@@ -48,12 +48,11 @@ export default function Sidebar({ categories = [], currentCategory }: { categori
   const groupOrder = [
     'Бренд',
     'Видеоаналитика',
-    // --- ПРИОРИТЕТ MIKRODRIVE / ПРОМЫШЛЕННЫЕ РОУТЕРЫ ---
+    // --- СЕТЕВОЕ ОБОРУДОВАНИЕ (Оптимизация под PoE инжекторы) ---
+    'Стандарт PoE',
     'Стандарт связи',
     'Количество SIM-карт',
     'Интерфейсы',
-    'Исполнение',
-    // --- СЕТЕВОЕ ОБОРУДОВАНИЕ (ДОПОЛНЕНО) ---
     'Частота',
     'Дальность связи',
     'Пропускная способность',
@@ -77,6 +76,7 @@ export default function Sidebar({ categories = [], currentCategory }: { categori
     'Гигабитные порты',
     'Общий бюджет PoE (Вт)',
     'Максимальная мощность PoE порта (Вт)',
+    'Исполнение',
     'Способ установки',
     // --- ВИДЕОНАБЛЮДЕНИЕ ---
     'Разрешение, Мп',
