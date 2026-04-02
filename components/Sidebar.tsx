@@ -37,14 +37,14 @@ export default function Sidebar({ categories = [], currentCategory }: { categori
     router.push(`?${params.toString()}`, { scroll: false });
   };
 
-  // Группировка
+  // Группировка дочерних категорий
   const subItems = categories.filter((c: any) => c.parent_id === currentCategory?.id);
   const groups = subItems.reduce((acc: any, item: any) => {
     const g = item.specs?.group || 'Прочее';
     if (!acc[g]) acc[g] = []; acc[g].push(item); return acc;
   }, {});
 
-  // ИНЖЕНЕРНЫЙ ПОРЯДОК ГРУПП (Build 74 — Mikrodrive Optimized)
+  // ИНЖЕНЕРНЫЙ ПОРЯДОК ГРУПП (Build 20 - v2.6.7 Optimized)
   const groupOrder = [
     'Бренд',
     'Видеоаналитика',
@@ -53,9 +53,15 @@ export default function Sidebar({ categories = [], currentCategory }: { categori
     'Количество SIM-карт',
     'Интерфейсы',
     'Исполнение',
-    // --- СЕТЕВОЕ ОБОРУДОВАНИЕ ---
+    // --- СЕТЕВОЕ ОБОРУДОВАНИЕ (ДОПОЛНЕНО) ---
+    'Частота',
+    'Дальность связи',
+    'Пропускная способность',
     'Частота Wi-Fi',
     'Стандарт Wi-Fi',
+    'Тип модуля',
+    'Тип волокна',
+    'Скорость передачи',
     'Мобильная связь',
     'Скорость портов',
     'Количество портов LAN',
