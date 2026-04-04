@@ -3,16 +3,21 @@ import { ChevronRight, Menu, ShoppingCart, Shield, ArrowRight, Activity, Cpu, Fi
 import { ScrollToTop } from './ScrollToTop'
 
 export default async function Home() {
-  // Инициализируем серверный клиент Supabase (Next.js 16 Style)
+  // 1. Инициализируем серверный клиент Supabase (Next.js 16 / React 19 Style)
   const supabase = await createClient()
 
-  // Запрашиваем категории и подкатегории одним запросом
+  /**
+   * 2. ЗАПРОС ДАННЫХ
+   * Получаем главные категории и их вложенные подкатегории одним запросом.
+   * Мы удалили ручной массив skudSubcategories — теперь всё берется из БД.
+   */
   const { data: categories } = await supabase
     .from('categories')
-    .select('id, name, slug, subcategories:categories(id, name, slug)')
+    .select('id, name, slug, subcategories:categories(id, name, slug, specs)')
     .is('parent_id', null)
+    .order('id', { ascending: true })
 
-  // Запрашиваем последние товары
+  // 3. Получаем последние товары для сетки на главной
   const { data: products } = await supabase
     .from('products')
     .select('*')
@@ -24,7 +29,7 @@ export default async function Home() {
       <ScrollToTop />
 
       {/* --- HEADER --- */}
-      <header className="sticky top-0 z-[100] border-b border-slate-100 bg-white py-4 shadow-sm">
+      <header className="sticky top-0 z-50 border-b border-slate-100 bg-white py-4 shadow-sm">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6">
           
           {/* ЛОГОТИП */}
@@ -43,12 +48,12 @@ export default async function Home() {
                 <Menu size={16} strokeWidth={3} /> КАТАЛОГ
               </button>
               
-              {/* ВЫПАДАЮЩЕЕ ОКНО */}
-              <div className="absolute right-0 top-full pt-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[110]">
-                <div className="relative flex w-[920px] bg-slate-950/98 backdrop-blur-3xl rounded-sm shadow-[0_50px_100px_rgba(0,0,0,0.9)] border border-white/5 h-auto overflow-hidden">
+              {/* ВЫПАДАЮЩЕЕ ОКНО: Полностью динамическое из базы данных */}
+              <div className="absolute right-0 top-full pt-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                <div className="relative flex w-[920px] bg-slate-950/98 backdrop-blur-3xl rounded-sm shadow-[0_50px_100px_rgba(0,0,0,0.9)] border border-white/5 h-auto min-h-[450px] overflow-visible">
                   
-                  {/* Левая панель: Категории */}
-                  <div className="w-[300px] py-8 border-r border-white/5 bg-black/20 flex flex-col z-20">
+                  {/* Левая панель: Основные категории */}
+                  <div className="w-[300px] py-8 border-r border-white/5 bg-black/20 flex flex-col z-20 shrink-0">
                     {categories?.map((cat) => (
                       <div key={cat.id} className="group/item static px-4">
                         <div className="flex items-center justify-between px-6 py-3.5 rounded-sm transition-all hover:bg-blue-600 cursor-default group/row">
@@ -57,26 +62,29 @@ export default async function Home() {
                           </span>
                           <ChevronRight size={16} className="text-white/20 group-hover/item:text-white transition-transform group-hover/item:translate-x-1" />
                           
-                          {/* Правая панель: Подкатегории */}
-                          <div className="absolute left-[300px] top-0 right-0 bottom-0 bg-[#080a0f] opacity-0 invisible group-hover/item:opacity-100 group-hover/item:visible transition-all duration-150 p-12 z-50 h-full">
+                          {/* Правая панель: Подкатегории (теперь строго из БД) */}
+                          <div className="absolute left-[300px] top-0 right-0 min-h-full bg-[#080a0f] opacity-0 invisible group-hover/item:opacity-100 group-hover/item:visible transition-all duration-150 p-12 z-50 h-auto pb-16">
                             <div className="mb-8 flex items-center gap-4 border-b border-white/10 pb-5">
                               <div className="h-5 w-1 bg-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.6)]"></div>
                               <h4 className="text-[14px] font-black text-white uppercase tracking-[0.2em]">{cat.name}</h4>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-x-10 gap-y-3">
-                              {cat.subcategories?.map((sub: any) => (
-                                <a 
-                                  key={sub.id} 
-                                  href={`/catalog/${sub.slug}`} 
-                                  className="group/link flex items-center gap-3 py-1 transition-all bg-transparent outline-none selection:bg-transparent"
-                                >
-                                  <div className="h-1 w-1 rounded-full bg-blue-500 opacity-0 group-hover/link:opacity-100 transition-opacity" />
-                                  <span className="text-[14px] font-bold text-white/40 group-hover/link:text-white leading-tight transition-colors select-none bg-transparent">
-                                    {sub.name}
-                                  </span>
-                                </a>
-                              ))}
+                            <div className="grid grid-cols-2 gap-x-10 gap-y-4">
+                              {/* Сортировка подкатегорий по sort_order из specs */}
+                              {(cat.subcategories || [])
+                                .sort((a: any, b: any) => (a.specs?.sort_order || 99) - (b.specs?.sort_order || 99))
+                                .map((sub: any) => (
+                                  <a 
+                                    key={sub.id} 
+                                    href={`/catalog/${sub.slug}`} 
+                                    className="group/link flex items-center gap-3 py-1 transition-all bg-transparent outline-none"
+                                  >
+                                    <div className="h-1 w-1 rounded-full bg-blue-500 opacity-0 group-hover/link:opacity-100 transition-opacity shrink-0" />
+                                    <span className="text-[13px] font-bold text-white/40 group-hover/link:text-white leading-tight transition-colors select-none">
+                                      {sub.name}
+                                    </span>
+                                  </a>
+                                ))}
                             </div>
                           </div>
                         </div>
@@ -84,9 +92,10 @@ export default async function Home() {
                     ))}
                   </div>
 
+                  {/* Центральный визуальный блок-заглушка */}
                   <div className="flex-1 flex flex-col items-center justify-center p-12 text-center opacity-10 select-none">
                     <Cpu size={60} className="mb-6 text-white" strokeWidth={1} />
-                    <p className="text-[10px] font-black uppercase tracking-[0.6em] text-white">INFRASTRUCTURE</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.6em] text-white">SYSTEMS INFRASTRUCTURE</p>
                   </div>
                 </div>
               </div>
@@ -137,7 +146,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Сетка товаров (пример вывода из базы) */}
+      {/* --- СЕТКА ТОВАРОВ НА ГЛАВНОЙ --- */}
       <section className="bg-white py-24 px-6">
         <div className="mx-auto max-w-7xl">
           <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-4">
