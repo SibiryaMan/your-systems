@@ -1,4 +1,4 @@
-import { supabase, getFullCategoryTree } from '@/lib/supabase';
+import { createClient } from '@/utils/supabase/server';
 import Sidebar from '@/components/Sidebar';
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
@@ -43,10 +43,17 @@ export default async function CatalogPage({ params, searchParams }: PageProps) {
   const categorySlug = resolvedParams.category;
   const activeFilters = resolvedSearch.filters ? resolvedSearch.filters.split(',') : [];
 
+  const supabase = await createClient();
+
   if (categorySlug === 'aksessuary' || categorySlug === 'aksessuary-video') redirect('/catalog/korobki');
   if (categorySlug === 'setevoe-oborudovanie') redirect('/catalog/switches');
 
-  const allCategories = await getFullCategoryTree();
+  // Получаем дерево категорий прямо здесь, на сервере
+  const { data: allCategories } = await supabase
+    .from('categories')
+    .select('id, parent_id, name, slug, specs, icon')
+    .order('id', { ascending: true });
+
   const { data: activeCategory } = await supabase
     .from('categories')
     .select('*')
@@ -58,8 +65,8 @@ export default async function CatalogPage({ params, searchParams }: PageProps) {
   const family = Object.values(NAV_GROUPS).find(group => group.some(l => l.slug === categorySlug)) || [];
 
   let targetIds = activeFilters.length > 0 
-    ? allCategories.filter((c: any) => activeFilters.includes(c.slug)).map((c: any) => c.id)
-    : [activeCategory.id, ...allCategories.filter((c: any) => c.parent_id === activeCategory.id).map((c: any) => c.id)];
+    ? (allCategories || []).filter((c: any) => activeFilters.includes(c.slug)).map((c: any) => c.id)
+    : [activeCategory.id, ...(allCategories || []).filter((c: any) => c.parent_id === activeCategory.id).map((c: any) => c.id)];
 
   const { data: products } = await supabase
     .from('products')

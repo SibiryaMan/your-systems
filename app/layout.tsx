@@ -1,7 +1,4 @@
 import './globals.css';
-import { Inter } from 'next/font/google';
-
-const inter = Inter({ subsets: ['latin', 'cyrillic'] });
 
 export const metadata = {
   title: 'YourSystems | Инженерные системы',
@@ -15,10 +12,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ru">
-      <body className={inter.className}>
+      <body className="antialiased font-sans bg-white text-slate-900">
         {/* 
            ВАЖНО: Здесь не должно быть тегов <h1>, Sidebar или Navbar, 
-           если вы уже вызываете их внутри файла app/catalog/[category]/page.tsx.
+           если вы уже вызываете их внутри файлов страниц (например, в CatalogPage).
            Иначе они будут дублироваться на каждой странице.
         */}
         {children}

@@ -1,14 +1,22 @@
-import { supabase } from './supabase'
+import { createClient } from '@/utils/supabase/server'
 import { ChevronRight, Menu, ShoppingCart, Shield, ArrowRight, Activity, Cpu, Fingerprint } from 'lucide-react'
 import { ScrollToTop } from './ScrollToTop'
 
 export default async function Home() {
+  // Инициализируем серверный клиент Supabase (Next.js 16 Style)
+  const supabase = await createClient()
+
+  // Запрашиваем категории и подкатегории одним запросом
   const { data: categories } = await supabase
     .from('categories')
     .select('id, name, slug, subcategories:categories(id, name, slug)')
     .is('parent_id', null)
 
-  const { data: products } = await supabase.from('products').select('*').limit(8)
+  // Запрашиваем последние товары
+  const { data: products } = await supabase
+    .from('products')
+    .select('*')
+    .limit(8)
 
   return (
     <main className="min-h-screen bg-white font-sans text-slate-900 selection:bg-blue-600 selection:text-white overflow-x-hidden">
@@ -30,17 +38,16 @@ export default async function Home() {
           </div>
           
           <nav className="flex items-center gap-10">
-            {/* ГРУППА КАТАЛОГА С ИСПРАВЛЕННЫМ ПОЗИЦИОНИРОВАНИЕМ */}
             <div className="relative group">
               <button className="flex items-center gap-2.5 rounded-sm bg-slate-950 px-5 py-2.5 text-[11px] font-black uppercase tracking-[0.1em] text-white hover:bg-blue-600 transition-all active:scale-95 shadow-md cursor-pointer">
                 <Menu size={16} strokeWidth={3} /> КАТАЛОГ
               </button>
               
-              {/* ВЫПАДАЮЩЕЕ ОКНО: right-0 привязывает его к кнопке */}
+              {/* ВЫПАДАЮЩЕЕ ОКНО */}
               <div className="absolute right-0 top-full pt-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[110]">
                 <div className="relative flex w-[920px] bg-slate-950/98 backdrop-blur-3xl rounded-sm shadow-[0_50px_100px_rgba(0,0,0,0.9)] border border-white/5 h-auto overflow-hidden">
                   
-                  {/* Левая панель: Категории (Симметрия py-8) */}
+                  {/* Левая панель: Категории */}
                   <div className="w-[300px] py-8 border-r border-white/5 bg-black/20 flex flex-col z-20">
                     {categories?.map((cat) => (
                       <div key={cat.id} className="group/item static px-4">
@@ -50,7 +57,7 @@ export default async function Home() {
                           </span>
                           <ChevronRight size={16} className="text-white/20 group-hover/item:text-white transition-transform group-hover/item:translate-x-1" />
                           
-                          {/* Правая панель: Подкатегории (Абсолютно прозрачный фон) */}
+                          {/* Правая панель: Подкатегории */}
                           <div className="absolute left-[300px] top-0 right-0 bottom-0 bg-[#080a0f] opacity-0 invisible group-hover/item:opacity-100 group-hover/item:visible transition-all duration-150 p-12 z-50 h-full">
                             <div className="mb-8 flex items-center gap-4 border-b border-white/10 pb-5">
                               <div className="h-5 w-1 bg-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.6)]"></div>
@@ -77,7 +84,6 @@ export default async function Home() {
                     ))}
                   </div>
 
-                  {/* Заглушка центральная */}
                   <div className="flex-1 flex flex-col items-center justify-center p-12 text-center opacity-10 select-none">
                     <Cpu size={60} className="mb-6 text-white" strokeWidth={1} />
                     <p className="text-[10px] font-black uppercase tracking-[0.6em] text-white">INFRASTRUCTURE</p>
@@ -94,10 +100,8 @@ export default async function Home() {
         </div>
       </header>
 
-      {/* --- HERO SECTION (ИДЕАЛЬНАЯ ЦЕНТРОВКА) --- */}
+      {/* --- HERO SECTION --- */}
       <section className="relative flex min-h-[calc(100vh-80px)] w-full flex-col justify-center overflow-hidden bg-[#05070a] noise-overlay">
-        
-        {/* ВИДЕО (z-10) */}
         <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
           <div className="h-full w-full video-mask">
             <video autoPlay muted loop playsInline className="h-full w-full object-contain opacity-80 scale-110" style={{ filter: 'brightness(1.1) saturate(1.2)' }}>
@@ -106,13 +110,10 @@ export default async function Home() {
           </div>
         </div>
 
-        {/* ГРАДИЕНТЫ ЗАТЕМНЕНИЯ (z-20) */}
         <div className="absolute inset-y-0 left-0 z-20 w-[70%] bg-gradient-to-r from-[#05070a] via-[#05070a]/98 to-transparent" />
         <div className="absolute inset-y-0 right-0 z-20 w-[30%] bg-gradient-to-l from-[#05070a] via-[#05070a]/80 to-transparent" />
         
-        {/* КОНТЕНТ (z-30) */}
         <div className="relative z-30 mx-auto w-full max-w-7xl px-6 flex items-center justify-between">
-          
           <div className="max-w-4xl text-left">
             <div className="mb-10 flex items-center gap-4">
               <Activity size={16} className="text-blue-500 animate-pulse" />
@@ -129,31 +130,29 @@ export default async function Home() {
               От глубокого аудита до полной реализации проекта.
             </p>
 
-            <button className="group flex items-center gap-4 rounded-sm bg-blue-600 px-12 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-white transition-all hover:bg-blue-500 active:scale-95 shadow-2xl max-w-fit">
-               РАССЧИТАТЬ ПРОЕКТ <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform" />
+            <button className="group flex items-center gap-4 rounded-sm bg-blue-600 px-12 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-white transition-all hover:bg-blue-500 active:scale-95 shadow-lg">
+              ОБСУДИТЬ ПРОЕКТ <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
             </button>
-          </div>
-
-          {/* ПРАВАЯ ЧАСТЬ: ОТПЕЧАТОК */}
-          <div className="hidden xl:flex flex-col items-center justify-center gap-6 select-none animate-scanner-pulse opacity-80">
-            <div className="relative p-12 border border-blue-500/20 rounded-full backdrop-blur-sm bg-blue-500/5">
-              <div className="absolute inset-0 border border-blue-500/10 rounded-full animate-slow-spin" />
-              <Fingerprint size={130} strokeWidth={1} className="text-blue-500 blue-glow-filter opacity-80" />
-              <div className="absolute left-1/2 -translate-x-1/2 w-4/5 h-[2px] bg-blue-400 shadow-[0_0_15px_rgba(96,165,250,1)] animate-f-scan z-10" />
-            </div>
-            <div className="text-center">
-              <p className="text-[10px] font-black text-blue-500 uppercase tracking-[0.4em] mb-1">Fingerprint_ID</p>
-              <p className="text-[9px] font-mono text-slate-500 uppercase tracking-widest">Scanning_Active...</p>
-            </div>
           </div>
         </div>
       </section>
 
-      {/* --- КАТАЛОГ ТОВАРОВ (НИЖНЯЯ ЧАСТЬ) --- */}
-      <section className="mx-auto max-w-7xl px-6 py-24 bg-white">
-        {/* Сюда можно добавить сетку товаров */}
+      {/* Сетка товаров (пример вывода из базы) */}
+      <section className="bg-white py-24 px-6">
+        <div className="mx-auto max-w-7xl">
+          <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-4">
+            {products?.map((product) => (
+              <div key={product.id} className="group border border-slate-100 p-6 transition-all hover:border-blue-600">
+                <div className="mb-6 aspect-square bg-slate-50 flex items-center justify-center">
+                  <Fingerprint size={40} className="text-slate-200" />
+                </div>
+                <h3 className="mb-2 text-sm font-black uppercase tracking-tight line-clamp-2">{product.name}</h3>
+                <p className="text-xl font-black text-blue-600">{product.price.toLocaleString()} ₽</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
-
     </main>
   )
 }

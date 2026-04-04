@@ -1,15 +1,15 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation'; // Важно для отслеживания пути
-import { supabase } from '@/lib/supabase';
+import { usePathname } from 'next/navigation';
+import { createClient } from '@/lib/supabase';
 
 export default function Navbar() {
   const [categories, setCategories] = useState<any[]>([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
+  const supabase = createClient();
 
-  // ПРОВЕРКА: Если мы в каталоге, кнопка должна исчезнуть
   const isCatalogPage = pathname.startsWith('/catalog');
 
   useEffect(() => {
@@ -18,18 +18,23 @@ export default function Navbar() {
 
   useEffect(() => {
     async function fetchCategories() {
-      const { data } = await supabase.from('categories').select('*').is('parent_id', null);
+      const { data } = await supabase
+        .from('categories')
+        .select('*')
+        .is('parent_id', null);
+      
       if (data) {
-        const sorted = data.sort((a, b) => (parseInt(a.specs?.sort_order) || 999) - (parseInt(b.specs?.sort_order) || 999));
+        const sorted = data.sort((a, b) => 
+          (parseInt(a.specs?.sort_order) || 999) - (parseInt(b.specs?.sort_order) || 999)
+        );
         setCategories(sorted);
       }
     }
     fetchCategories();
-  }, []);
+  }, [supabase]);
 
   return (
     <nav className="h-20 w-full bg-white border-b border-gray-100 flex items-center justify-between px-8 sticky top-0 z-[200]">
-      {/* ЛОГОТИП */}
       <Link href="/" className="flex items-center gap-3 group select-none relative z-[210]">
         <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-lg">
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
@@ -44,7 +49,6 @@ export default function Navbar() {
 
       <div className="flex items-center gap-10">
         <div className="relative">
-          {/* ВЫВОДИМ КНОПКУ ТОЛЬКО ЕСЛИ МЫ НЕ В КАТАЛОГЕ */}
           {!isCatalogPage && (
             <button 
               onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -54,7 +58,6 @@ export default function Navbar() {
             </button>
           )}
 
-          {/* Само выпадающее меню (оставляем условие, на случай если нужно будет открыть его не из каталога) */}
           {isMenuOpen && !isCatalogPage && (
             <div className="absolute top-full right-0 mt-4 w-72 bg-[#0b0e14] border border-white/5 shadow-2xl p-4 animate-in fade-in slide-in-from-top-2 duration-200">
               <div className="flex flex-col gap-1">
