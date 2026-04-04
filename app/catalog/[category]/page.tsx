@@ -48,7 +48,6 @@ export default async function CatalogPage({ params, searchParams }: PageProps) {
   if (categorySlug === 'aksessuary' || categorySlug === 'aksessuary-video') redirect('/catalog/korobki');
   if (categorySlug === 'setevoe-oborudovanie') redirect('/catalog/switches');
 
-  // Получаем дерево категорий прямо здесь, на сервере
   const { data: allCategories } = await supabase
     .from('categories')
     .select('id, parent_id, name, slug, specs, icon')
@@ -76,20 +75,16 @@ export default async function CatalogPage({ params, searchParams }: PageProps) {
 
   return (
     <div className="min-h-screen bg-white font-sans overflow-x-hidden">
-      <Navbar />
-      <div className="fixed top-0 left-[320px] right-0 h-20 bg-white z-40 flex items-center pl-16 pointer-events-none">
-        <div className="flex flex-col translate-y-[2px]">
-          <h1 className="text-2xl font-black uppercase tracking-tight text-black leading-none bg-white">
-            {activeCategory.name}
-          </h1>
-          <div className="h-1 w-10 bg-blue-600 mt-2"></div>
-        </div>
-      </div>
+      <Navbar pageTitle={activeCategory.name} />
 
       <div className="flex flex-1 items-start relative">
+        {/* Sidebar фиксированной ширины 80 (320px) */}
         <Sidebar categories={allCategories || []} currentCategory={activeCategory} />
+        
+        {/* Main с тем же отступом px-16 */}
         <main className="flex-1 px-16 pt-8 bg-white min-h-[calc(100vh-80px)]">
           <div className="flex flex-col gap-10">
+            
             {family.length > 0 && (
               <nav className="flex flex-wrap gap-x-10 gap-y-4 border-b border-gray-100 pb-4 relative z-50">
                 {family.map((link) => (
